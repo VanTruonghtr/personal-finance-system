@@ -27,7 +27,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
       localStorage.setItem('user', JSON.stringify(user));
       onLoginSuccess(user, token);
     } catch (err: any) {
-      setError(err.response?.data?.message || '${err?.response?.data?.message || err?.response?.data?.error || (typeof err?.response?.data === "string" ? err.response.data : "Email/mật khẩu không đúng hoặc email đã tồn tại!")}');
+      setError(err.response?.data?.message || (err?.response?.data?.message || err?.response?.data?.error || (typeof err?.response?.data === "string" && err.response.data ? err.response.data : (!err?.response ? "Máy chủ đang khởi động (vui lòng đợi 30 giây rồi thử lại)" : "Sai thông tin đăng nhập hoặc email đã tồn tại!"))));
     } finally {
       setLoading(false);
     }
