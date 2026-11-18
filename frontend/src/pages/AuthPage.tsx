@@ -19,15 +19,52 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
     setError('');
     setLoading(true);
     try {
+      const cleanEmail = email.trim();
       const endpoint = isLogin ? '/auth/login' : '/auth/register';
-      const payload = isLogin ? { email, password } : { fullName, email, password };
+      const payload = isLogin
+        ? { email: cleanEmail, password }
+        : { fullName: fullName.trim(), email: cleanEmail, password };
+
       const res = await axiosClient.post(endpoint, payload);
-      const { token, ...user } = res.data;
+      let data = res.data || {};
+
+      // Nếu đăng ký thành công nhưng API không trả sẵn token, tự động đăng nhập để lấy token thật
+      if (!isLogin && !data.token && !data.accessToken) {
+        const loginRes = await axiosClient.post('/auth/login', { email: cleanEmail, password });
+        data = loginRes.data || {};
+      }
+
+      const token = data.token || data.accessToken;
+      if (!token || typeof token !== 'string') {
+        throw new Error('Máy chủ chưa cấp mã xác thực hợp lệ. Vui lòng thử lại sau giây lát!');
+      }
+
+      const { token: _t, accessToken: _at, ...rawUser } = data;
+      const userObj = rawUser.user ? rawUser.user : rawUser;
+      const finalUser = {
+        ...userObj,
+        fullName: userObj.fullName || fullName.trim() || cleanEmail.split('@')[0],
+        email: userObj.email || cleanEmail,
+      };
+
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      onLoginSuccess(user, token);
+      localStorage.setItem('user', JSON.stringify(finalUser));
+      onLoginSuccess(finalUser, token);
     } catch (err: any) {
-      setError(err.response?.data?.message || (err?.response?.data?.message || err?.response?.data?.error || (typeof err?.response?.data === "string" && err.response.data ? err.response.data : (!err?.response ? "Máy chủ đang khởi động (vui lòng đợi 30 giây rồi thử lại)" : "Sai thông tin đăng nhập hoặc email đã tồn tại!"))));
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      const serverMsg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        (typeof err?.response?.data === 'string' && err.response.data ? err.response.data : '');
+
+      if (serverMsg) {
+        setError(serverMsg);
+      } else if (!err?.response) {
+        setError('Máy chủ đang khởi động hoặc mất kết nối (vui lòng đợi 30 giây rồi thử lại).');
+      } else {
+        setError(err.message || 'Sai thông tin đăng nhập hoặc email đã được sử dụng!');
+      }
     } finally {
       setLoading(false);
     }
@@ -35,9 +72,9 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-slate-50 to-teal-50 p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-8">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-200">
+          <div className="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-200 shrink-0">
             <Wallet className="w-6 h-6" />
           </div>
           <div>
@@ -54,7 +91,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         </p>
 
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 text-sm">
+          <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-sm">
             {error}
           </div>
         )}

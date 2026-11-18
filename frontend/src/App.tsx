@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Wallet as WalletIcon, ArrowLeftRight, LogOut,
   Plus, TrendingUp, TrendingDown, Trash2, Search, CreditCard, Banknote, Smartphone,
   Pencil, Download, Calendar, ArrowUpDown, Tags, AlertTriangle, Target, PiggyBank, Repeat, Play, Eye, EyeOff, Sparkles, Send, Bot, CheckCircle2, ShieldAlert,
-  Bell
+  Bell, Menu, X, PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
@@ -137,13 +137,26 @@ function tabToPath(tab: TabType): string {
 export default function App() {
   const [user, setUser] = useState<UserProfile | null>(() => {
     const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
+    const token = localStorage.getItem('token');
+    if (!saved || !token || token === 'undefined' || token === 'null') {
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      return null;
+    }
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return null;
+    }
   });
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const [activeTab, setActiveTabState] = useState<TabType>(() => getTabFromPathname(window.location.pathname));
 
   const setActiveTab = (tab: TabType) => {
     setActiveTabState(tab);
+    setMobileMenuOpen(false);
     const nextPath = tabToPath(tab);
     if (window.location.pathname !== nextPath) {
       window.history.pushState({ tab }, '', nextPath);
@@ -839,81 +852,157 @@ export default function App() {
   const recFilteredCategories = categories.filter((c) => c.type === recType);
 
   return (
-    <div className="min-h-screen flex bg-slate-50">
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col justify-between p-5">
-        <div>
-          <div className="flex items-center gap-3 mb-8 px-2">
-            <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">
-              F
+    <div className="min-h-screen flex bg-slate-50 relative overflow-x-hidden">
+      {/* Lớp phủ mờ khi mở menu trên điện thoại */}
+      {mobileMenuOpen && (
+        <div
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-[1px] z-40 lg:hidden"
+        />
+      )}
+
+      <aside
+        className={
+          'fixed lg:sticky top-0 left-0 z-50 h-screen bg-white border-r border-slate-200 flex flex-col justify-between transition-all duration-300 shrink-0 ' +
+          (mobileMenuOpen ? 'translate-x-0 ' : '-translate-x-full lg:translate-x-0 ') +
+          (sidebarCollapsed ? 'w-64 lg:w-20 p-4 lg:px-2.5' : 'w-64 p-5')
+        }
+      >
+        <div className="overflow-y-auto overflow-x-hidden">
+          <div className={'flex items-center justify-between mb-7 ' + (sidebarCollapsed ? 'lg:justify-center px-1' : 'px-1')}>
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold shrink-0">
+                F
+              </div>
+              <div className={sidebarCollapsed ? 'lg:hidden' : ''}>
+                <div className="font-bold text-slate-900 truncate">HTR FinMind</div>
+                <div className="text-[11px] text-slate-400 truncate">Smart Financial Management</div>
+              </div>
             </div>
-            <div>
-              <div className="font-bold text-slate-900">HTR FinMind</div>
-              <div className="text-xs text-slate-400">Smart Financial Management</div>
-            </div>
+
+            {/* Nút đóng trên Mobile */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(false)}
+              className="lg:hidden p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg cursor-pointer"
+              title="Đóng menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Nút thu gọn / mở rộng trên Desktop */}
+            {!sidebarCollapsed && (
+              <button
+                type="button"
+                onClick={() => setSidebarCollapsed(true)}
+                className="hidden lg:flex p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+                title="Thu nhỏ thanh bên"
+              >
+                <PanelLeftClose className="w-4 h-4" />
+              </button>
+            )}
           </div>
+
+          {sidebarCollapsed && (
+            <div className="hidden lg:flex justify-center mb-4">
+              <button
+                type="button"
+                onClick={() => setSidebarCollapsed(false)}
+                className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition cursor-pointer"
+                title="Mở rộng thanh bên"
+              >
+                <PanelLeftOpen className="w-4 h-4" />
+              </button>
+            </div>
+          )}
 
           <nav className="space-y-1.5">
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (activeTab === 'dashboard' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
-              <LayoutDashboard className="w-4 h-4" /> Tổng quan & Thống kê
+              title="Tổng quan & Thống kê"
+              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'dashboard' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
+              <LayoutDashboard className="w-4 h-4 shrink-0" />
+              <span className={sidebarCollapsed ? 'lg:hidden truncate' : 'truncate'}>Tổng quan & Thống kê</span>
             </button>
 
             <button
               onClick={() => setActiveTab('wallets')}
-              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (activeTab === 'wallets' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
-              <WalletIcon className="w-4 h-4" /> Quản lý Ví tiền ({wallets.length})
+              title={`Quản lý Ví tiền (${wallets.length})`}
+              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'wallets' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
+              <WalletIcon className="w-4 h-4 shrink-0" />
+              <span className={sidebarCollapsed ? 'lg:hidden truncate' : 'truncate'}>Quản lý Ví tiền ({wallets.length})</span>
             </button>
 
             <button
               onClick={() => setActiveTab('transactions')}
-              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (activeTab === 'transactions' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
-              <ArrowLeftRight className="w-4 h-4" /> Sổ Giao dịch ({monthFilteredTx.length})
+              title={`Sổ Giao dịch (${monthFilteredTx.length})`}
+              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'transactions' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
+              <ArrowLeftRight className="w-4 h-4 shrink-0" />
+              <span className={sidebarCollapsed ? 'lg:hidden truncate' : 'truncate'}>Sổ Giao dịch ({monthFilteredTx.length})</span>
             </button>
 
             <button
               onClick={() => setActiveTab('categories')}
-              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (activeTab === 'categories' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
-              <Tags className="w-4 h-4" /> Danh mục & Ngân sách ({categories.length})
+              title={`Danh mục & Ngân sách (${categories.length})`}
+              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'categories' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
+              <Tags className="w-4 h-4 shrink-0" />
+              <span className={sidebarCollapsed ? 'lg:hidden truncate' : 'truncate'}>Danh mục & Ngân sách ({categories.length})</span>
             </button>
 
             <button
               onClick={() => setActiveTab('goals')}
-              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (activeTab === 'goals' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
-              <Target className="w-4 h-4" /> Mục tiêu Tiết kiệm ({goals.length})
+              title={`Mục tiêu Tiết kiệm (${goals.length})`}
+              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'goals' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
+              <Target className="w-4 h-4 shrink-0" />
+              <span className={sidebarCollapsed ? 'lg:hidden truncate' : 'truncate'}>Mục tiêu Tiết kiệm ({goals.length})</span>
             </button>
 
             <button
               onClick={() => setActiveTab('recurring')}
-              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (activeTab === 'recurring' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
-              <Repeat className="w-4 h-4" /> Giao dịch Định kỳ ({recurrings.length})
+              title={`Giao dịch Định kỳ (${recurrings.length})`}
+              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'recurring' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
+              <Repeat className="w-4 h-4 shrink-0" />
+              <span className={sidebarCollapsed ? 'lg:hidden truncate' : 'truncate'}>Giao dịch Định kỳ ({recurrings.length})</span>
             </button>
 
             <button
               onClick={() => { setActiveTab('ai'); fetchAiAnalysis(selectedMonth); }}
-              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition cursor-pointer ' + (activeTab === 'ai' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-indigo-700 bg-indigo-50/70 hover:bg-indigo-100')}>
-              <Sparkles className="w-4 h-4" /> AI Phân tích Tài chính
+              title="AI Phân tích Tài chính"
+              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'ai' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-indigo-700 bg-indigo-50/70 hover:bg-indigo-100')}>
+              <Sparkles className="w-4 h-4 shrink-0" />
+              <span className={sidebarCollapsed ? 'lg:hidden truncate' : 'truncate'}>AI Phân tích Tài chính</span>
             </button>
           </nav>
         </div>
 
         <div className="pt-4 border-t border-slate-100">
-          <div className="px-2 mb-3">
+          <div className={'px-2 mb-3 ' + (sidebarCollapsed ? 'lg:hidden' : '')}>
             <div className="text-sm font-semibold text-slate-800 truncate">{user.fullName}</div>
             <div className="text-xs text-slate-400 truncate">{user.email}</div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm text-rose-600 hover:bg-rose-50 transition cursor-pointer">
-            <LogOut className="w-4 h-4" /> Đăng xuất
+            title="Đăng xuất"
+            className={'w-full flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm text-rose-600 hover:bg-rose-50 transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0' : '')}>
+            <LogOut className="w-4 h-4 shrink-0" />
+            <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Đăng xuất</span>
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 p-8 overflow-y-auto">
-        <header className="flex flex-wrap items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">
+      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <header className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden p-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 shadow-2xs shrink-0 cursor-pointer"
+              title="Mở danh mục"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="min-w-0">
+            <h1 className="text-lg sm:text-2xl font-bold text-slate-900 truncate">
               {activeTab === 'dashboard' && 'Tổng quan tài chính'}
               {activeTab === 'wallets' && 'Danh sách Ví & Tài khoản'}
               {activeTab === 'transactions' && 'Lịch sử Giao dịch'}
@@ -922,7 +1011,8 @@ export default function App() {
               {activeTab === 'recurring' && 'Khoản Thu / Chi Định kỳ'}
               {activeTab === 'ai' && 'Trợ lý AI Phân tích Tài chính'}
             </h1>
-            <p className="text-sm text-slate-500">Theo dõi dòng tiền và phân tích chi tiêu theo thời gian thực</p>
+            <p className="text-xs sm:text-sm text-slate-500 truncate">Theo dõi dòng tiền và phân tích chi tiêu theo thời gian thực</p>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -2031,7 +2121,7 @@ export default function App() {
       {/* FLOATING AI CHAT WIDGET */}
       <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999 }} className="flex flex-col items-end">
         {miniChatOpen && (
-          <div className="mb-3 w-[350px] sm:w-[370px] h-[440px] bg-white rounded-2xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden">
+          <div className="mb-3 w-[calc(100vw-32px)] sm:w-[370px] h-[420px] sm:h-[440px] bg-white rounded-2xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden">
             <div className="px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
