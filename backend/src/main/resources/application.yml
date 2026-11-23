@@ -20,5 +20,5 @@ spring:
 
 app:
   jwt:
-    secret: UITPersonalFinanceSecretKey2026ForJWTTokenGenerationMustBeLongEnough
+    secret: ${JWT_SECRET:UITPersonalFinanceSecretKey2026ForJWTTokenGenerationMustBeLongEnough}
     expiration-ms: 86400000
