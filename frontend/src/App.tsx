@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import axiosClient from './api/axiosClient';
 import AuthPage from './pages/AuthPage';
+import ChangePasswordModal from './components/ChangePasswordModal';
 import type { Wallet, TransactionItem, UserProfile } from './types/finance';
 import {
   LayoutDashboard, Wallet as WalletIcon, ArrowLeftRight, LogOut,
   Plus, TrendingUp, TrendingDown, Trash2, Search, CreditCard, Banknote, Smartphone,
   Pencil, Download, Calendar, ArrowUpDown, Tags, AlertTriangle, Target, PiggyBank, Repeat, Play, Eye, EyeOff, Sparkles, Send, Bot, CheckCircle2, ShieldAlert,
-  Bell, Menu, X, PanelLeftClose, PanelLeftOpen
+  Bell, Menu, X, PanelLeftClose, PanelLeftOpen, KeyRound
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
@@ -255,6 +256,8 @@ export default function App() {
   const [walletType, setWalletType] = useState<'CASH' | 'BANK' | 'EWALLET'>('BANK');
   const [walletBalance, setWalletBalance] = useState('');
   const [walletStatus, setWalletStatus] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
+
+  const [showChangePassModal, setShowChangePassModal] = useState(false);
 
   // State Modal Giao dịch
   const [showTxModal, setShowTxModal] = useState(false);
@@ -980,6 +983,15 @@ export default function App() {
             <div className="text-sm font-semibold text-slate-800 truncate">{user.fullName}</div>
             <div className="text-xs text-slate-400 truncate">{user.email}</div>
           </div>
+
+          <button
+            onClick={() => setShowChangePassModal(true)}
+            title="Đổi mật khẩu"
+            className={'w-full flex items-center gap-2 px-3.5 py-2 mb-1 rounded-xl text-sm text-slate-600 hover:bg-slate-100 transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0' : '')}>
+            <KeyRound className="w-4 h-4 shrink-0" />
+            <span className={sidebarCollapsed ? 'lg:hidden' : ''}>Đổi mật khẩu</span>
+          </button>
+
           <button
             onClick={handleLogout}
             title="Đăng xuất"
@@ -2117,6 +2129,11 @@ export default function App() {
           </div>
         </div>
       )}
+
+      <ChangePasswordModal
+        isOpen={showChangePassModal}
+        onClose={() => setShowChangePassModal(false)}
+      />
 
       {/* FLOATING AI CHAT WIDGET */}
       <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999 }} className="flex flex-col items-end">

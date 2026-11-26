@@ -18,7 +18,9 @@ axiosClient.interceptors.request.use((config) => {
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 || error.response?.status === 403) {
+    const reqUrl = String(error?.config?.url || '');
+    const isAuthEndpoint = reqUrl.includes('/auth/');
+    if (!isAuthEndpoint && (error.response?.status === 401 || error.response?.status === 403)) {
       if (!window.location.pathname.includes('/login')) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
