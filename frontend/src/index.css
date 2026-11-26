@@ -55,14 +55,6 @@ table th {
     box-shadow: 0 20px 40px rgba(15, 23, 42, 0.22);
   }
 
-  header {
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 30 !important;
-    background-color: rgba(255, 255, 255, 0.96) !important;
-    backdrop-filter: blur(8px);
-  }
-
   main {
     min-width: 0 !important;
     padding-bottom: 6rem !important;

@@ -855,7 +855,7 @@ export default function App() {
   const recFilteredCategories = categories.filter((c) => c.type === recType);
 
   return (
-    <div className="min-h-screen flex bg-slate-50 relative overflow-x-hidden">
+    <div className="min-h-screen flex bg-slate-50 relative overflow-x-clip">
       {/* Lớp phủ mờ khi mở menu trên điện thoại */}
       {mobileMenuOpen && (
         <div
@@ -1002,8 +1002,25 @@ export default function App() {
         </div>
       </aside>
 
-      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
+            <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
+        {/* Thanh trên cố định cho điện thoại */}
+        <div className="lg:hidden sticky top-0 z-30 -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-4 px-4 py-3 bg-white/95 backdrop-blur border-b border-slate-200 flex items-center justify-between">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              className="p-2 -ml-1 rounded-xl text-slate-700 hover:bg-slate-100 active:bg-slate-200 shrink-0 cursor-pointer"
+              title="Mở danh mục"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+              F
+            </div>
+            <span className="font-bold text-slate-900 text-base truncate">HTR FinMind</span>
+          </div>
+        </div>
+        <header className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
