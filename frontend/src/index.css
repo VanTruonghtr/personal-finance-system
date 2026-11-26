@@ -29,8 +29,32 @@ table th {
   white-space: nowrap;
 }
 
+/* Thanh bar bên (Sidebar) trên máy tính: ghim cố định khi cuộn */
+@media (min-width: 1024px) {
+  aside {
+    position: sticky !important;
+    top: 0 !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow-y: auto !important;
+    flex-shrink: 0 !important;
+  }
+}
+
+/* Thanh bar bên (Sidebar) & Header trên điện thoại / tablet */
 @media (max-width: 1023px) {
-  /* Ghim chặt thanh Header (tên app + nút 3 gạch) trên cùng khi cuộn */
+  aside {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow-y: auto !important;
+    z-index: 50 !important;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.22);
+  }
+
   header {
     position: sticky !important;
     top: 0 !important;
@@ -39,7 +63,6 @@ table th {
     backdrop-filter: blur(8px);
   }
 
-  /* Chừa khoảng trống cuối trang để nút AI tím không che dòng cuối */
   main {
     min-width: 0 !important;
     padding-bottom: 6rem !important;
@@ -47,7 +70,6 @@ table th {
 }
 
 @media (max-width: 767px) {
-  /* Khung chứa bảng tự cuộn ngang mượt, không ép nát cột Mô tả */
   *:has(> table) {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
@@ -71,7 +93,6 @@ table th {
     white-space: nowrap;
   }
 
-  /* Modal trên điện thoại tự cuộn dọc nếu màn hình thấp */
   div[class*="fixed"][class*="inset-0"] > div {
     max-height: 90dvh;
     overflow-y: auto;
