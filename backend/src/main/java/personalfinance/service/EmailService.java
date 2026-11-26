@@ -19,6 +19,12 @@ public class EmailService {
 
     private final ObjectProvider<JavaMailSender> mailSenderProvider;
 
+    @Value("${mail.webhook.url:}")
+    private String mailWebhookUrl;
+
+    @Value("${mail.webhook.secret:HTR_FINMIND_SECRET_2026}")
+    private String mailWebhookSecret;
+
     @Value("${brevo.api.key:}")
     private String brevoApiKey;
 
@@ -34,13 +40,18 @@ public class EmailService {
     public boolean sendOtpEmail(String toEmail, String otpCode, String purpose) {
         boolean isRegister = "REGISTER".equalsIgnoreCase(purpose);
         String subject = isRegister
-                ? "[HTR FinMind] Mã xác nhận đăng ký tài khoản: " + otpCode
-                : "[HTR FinMind] Mã xác nhận đặt lại mật khẩu: " + otpCode;
+                ? "HTR FinMind - Xác nhận đăng ký tài khoản"
+                : "HTR FinMind - Yêu cầu đặt lại mật khẩu";
 
         String actionTitle = isRegister ? "Xác nhận đăng ký tài khoản" : "Đặt lại mật khẩu";
         String actionDesc = isRegister
                 ? "Cảm ơn bạn đã đăng ký sử dụng HTR FinMind. Vui lòng nhập mã xác nhận bên dưới để hoàn tất tạo tài khoản:"
                 : "Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản HTR FinMind. Vui lòng nhập mã xác nhận bên dưới:";
+
+        String plainText = actionTitle + "\n\n"
+                + actionDesc + "\n"
+                + "Mã xác nhận của bạn là: " + otpCode + "\n"
+                + "Mã có hiệu lực trong 10 phút.";
 
         String html = """
                 <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px;">
@@ -57,7 +68,27 @@ public class EmailService {
                 </div>
                 """.formatted(actionTitle, actionDesc, otpCode);
 
-        // 1. Uu tien Brevo HTTP API (khong bi chan port 587 tren Render Free)
+        // 1. Uu tien Google Apps Script Webhook (HTTPS cong 443, khong bi Render chan)
+        if (mailWebhookUrl != null && !mailWebhookUrl.isBlank()) {
+            Map<String, Object> payload = Map.of(
+                    "secret", mailWebhookSecret,
+                    "to", toEmail,
+                    "subject", subject,
+                    "text", plainText,
+                    "html", html
+            );
+
+            RestClient.create()
+                    .post()
+                    .uri(mailWebhookUrl.trim())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(payload)
+                    .retrieve()
+                    .toBodilessEntity();
+            return true;
+        }
+
+        // 2. Du phong Brevo HTTP API
         if (brevoApiKey != null && !brevoApiKey.isBlank()) {
             String sender = (brevoSenderEmail != null && !brevoSenderEmail.isBlank())
                     ? brevoSenderEmail.trim()
@@ -81,7 +112,7 @@ public class EmailService {
             return true;
         }
 
-        // 2. Gmail SMTP (tien dung khi chay local)
+        // 3. Gmail SMTP (chay local)
         JavaMailSender mailSender = mailSenderProvider.getIfAvailable();
         if (mailSender != null && smtpUsername != null && !smtpUsername.isBlank()
                 && smtpPassword != null && !smtpPassword.isBlank()) {
@@ -91,7 +122,7 @@ public class EmailService {
                 helper.setFrom(smtpUsername.trim(), "HTR FinMind");
                 helper.setTo(toEmail);
                 helper.setSubject(subject);
-                helper.setText(html, true);
+                helper.setText(plainText, html);
                 mailSender.send(message);
                 return true;
             } catch (Exception e) {
@@ -99,7 +130,7 @@ public class EmailService {
             }
         }
 
-        // 3. Fallback khi chua cau hinh mail (in ra console de test local)
+        // 4. Fallback console
         System.out.println("=========================================================");
         System.out.println("[HTR FINMIND OTP - CHUA CAU HINH MAIL]");
         System.out.println("To: " + toEmail + " | Purpose: " + purpose + " | OTP: " + otpCode);
