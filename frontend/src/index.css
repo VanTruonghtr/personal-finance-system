@@ -5,3 +5,80 @@ body {
   color: #0f172a;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
+
+/* === HTR_MOBILE_RESPONSIVE_START === */
+html,
+body,
+#root {
+  max-width: 100%;
+  overflow-x: clip;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Chống vỡ badge danh mục kiểu bậc thang */
+table span[class*="rounded-full"],
+td span[class*="rounded-full"] {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap !important;
+  line-height: 1.25;
+}
+
+table th {
+  white-space: nowrap;
+}
+
+@media (max-width: 1023px) {
+  /* Ghim chặt thanh Header (tên app + nút 3 gạch) trên cùng khi cuộn */
+  header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 30 !important;
+    background-color: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: blur(8px);
+  }
+
+  /* Chừa khoảng trống cuối trang để nút AI tím không che dòng cuối */
+  main {
+    min-width: 0 !important;
+    padding-bottom: 6rem !important;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Khung chứa bảng tự cuộn ngang mượt, không ép nát cột Mô tả */
+  *:has(> table) {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  table {
+    min-width: 720px;
+    width: 100%;
+  }
+
+  table th,
+  table td {
+    padding: 0.65rem 0.75rem !important;
+    font-size: 0.8125rem;
+    vertical-align: middle;
+  }
+
+  table td:first-child,
+  table td:last-child {
+    white-space: nowrap;
+  }
+
+  /* Modal trên điện thoại tự cuộn dọc nếu màn hình thấp */
+  div[class*="fixed"][class*="inset-0"] > div {
+    max-height: 90dvh;
+    overflow-y: auto;
+  }
+
+  .recharts-responsive-container {
+    min-width: 0 !important;
+  }
+}
+/* === HTR_MOBILE_RESPONSIVE_END === */

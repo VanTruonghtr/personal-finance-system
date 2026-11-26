@@ -1003,7 +1003,7 @@ export default function App() {
       </aside>
 
       <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-        <header className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
