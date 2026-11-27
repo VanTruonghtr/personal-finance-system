@@ -1021,17 +1021,9 @@ export default function App() {
           </div>
         </div>
         <header className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <div className="flex items-center gap-3 min-w-0">
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden p-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 shadow-2xs shrink-0 cursor-pointer"
-              title="Mở danh mục"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
+          <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
             <div className="min-w-0">
-            <h1 className="text-lg sm:text-2xl font-bold text-slate-900 truncate">
+            <h1 className="text-lg sm:text-2xl font-bold text-slate-900 leading-tight sm:truncate">
               {activeTab === 'dashboard' && 'Tổng quan tài chính'}
               {activeTab === 'wallets' && 'Danh sách Ví & Tài khoản'}
               {activeTab === 'transactions' && 'Lịch sử Giao dịch'}
@@ -1040,15 +1032,15 @@ export default function App() {
               {activeTab === 'recurring' && 'Khoản Thu / Chi Định kỳ'}
               {activeTab === 'ai' && 'Trợ lý AI Phân tích Tài chính'}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 truncate">Theo dõi dòng tiền và phân tích chi tiêu theo thời gian thực</p>
+            <p className="hidden sm:block text-xs sm:text-sm text-slate-500 truncate">Theo dõi dòng tiền và phân tích chi tiêu theo thời gian thực</p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <div
               onClick={() => setActiveTab('wallets')}
               title="Nhấp để xem chi tiết Quản lý Ví tiền"
-              className="flex items-center gap-2.5 bg-emerald-50/90 hover:bg-emerald-100/90 border border-emerald-200 px-3.5 py-2 rounded-xl shadow-xs transition cursor-pointer select-none">
+              className="flex items-center gap-2.5 bg-emerald-50/90 hover:bg-emerald-100/90 border border-emerald-200 px-3 sm:px-3.5 py-2 rounded-xl shadow-xs transition cursor-pointer select-none flex-1 sm:flex-none min-w-0">
               <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
                 <WalletIcon className="w-4 h-4" />
               </div>
@@ -1085,7 +1077,7 @@ export default function App() {
               </button>
 
               {showNotifDropdown && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 overflow-hidden">
+                <div className="fixed left-3 right-3 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-full mt-2 sm:w-80 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 overflow-hidden">
                   <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Nhắc lịch định kỳ ({dueRecurrings.length})</span>
                     <button type="button" onClick={() => setShowNotifDropdown(false)} className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer">Đóng</button>
@@ -1120,12 +1112,12 @@ export default function App() {
             </div>
 
             {(activeTab === 'dashboard' || activeTab === 'transactions' || activeTab === 'categories' || activeTab === 'ai') && (
-              <div className="flex items-center gap-2 bg-white border border-slate-200 px-3 py-2 rounded-xl text-sm">
-                <Calendar className="w-4 h-4 text-slate-400" />
+              <div className="flex items-center gap-2 bg-white border border-slate-200 px-3 py-2 rounded-xl text-sm flex-1 sm:flex-none min-w-[150px]">
+                <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="bg-transparent focus:outline-none text-slate-700 font-medium cursor-pointer">
+                  className="bg-transparent focus:outline-none text-slate-700 font-medium cursor-pointer w-full min-w-0">
                   <option value="ALL">Tất cả thời gian</option>
                   {availableMonths.map((m) => (
                     <option key={m} value={m}>
@@ -1137,23 +1129,23 @@ export default function App() {
             )}
 
             {activeTab === 'categories' ? (
-              <button onClick={openCreateCat} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium flex items-center gap-2 shadow-sm cursor-pointer">
+              <button onClick={openCreateCat} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2 shadow-sm cursor-pointer w-full sm:w-auto">
                 <Plus className="w-4 h-4" /> Thêm Danh mục
               </button>
             ) : activeTab === 'goals' ? (
-              <button onClick={openCreateGoal} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium flex items-center gap-2 shadow-sm cursor-pointer">
+              <button onClick={openCreateGoal} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2 shadow-sm cursor-pointer w-full sm:w-auto">
                 <Plus className="w-4 h-4" /> Tạo Mục tiêu mới
               </button>
             ) : activeTab === 'recurring' ? (
-              <button onClick={openCreateRec} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium flex items-center gap-2 shadow-sm cursor-pointer">
+              <button onClick={openCreateRec} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2 shadow-sm cursor-pointer w-full sm:w-auto">
                 <Plus className="w-4 h-4" /> Thêm Khoản Định kỳ
               </button>
             ) : (
               <>
-                <button onClick={openCreateWallet} className="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-medium flex items-center gap-2 cursor-pointer">
+                <button onClick={openCreateWallet} className="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-medium flex items-center justify-center gap-2 cursor-pointer flex-1 sm:flex-none">
                   <Plus className="w-4 h-4" /> Thêm Ví
                 </button>
-                <button onClick={openCreateTx} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium flex items-center gap-2 shadow-sm cursor-pointer">
+                <button onClick={openCreateTx} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2 shadow-sm cursor-pointer flex-1 sm:flex-none">
                   <Plus className="w-4 h-4" /> Ghi Giao dịch
                 </button>
               </>
@@ -1163,7 +1155,7 @@ export default function App() {
 
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs">
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs">
               <div className="flex flex-wrap items-center justify-between gap-2 mb-5">
                 <div>
                   <h3 className="text-base font-bold text-slate-800">Xu hướng Dòng tiền Thu – Chi (6 tháng gần nhất)</h3>
@@ -1179,7 +1171,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-6 gap-3 items-end h-52 pt-6 pb-2 px-2 border-b border-slate-100">
+              <div className="grid grid-cols-6 gap-1.5 sm:gap-3 items-end h-52 pt-6 pb-2 px-0 sm:px-2 border-b border-slate-100">
                 {sixMonthCashflow.months.map((m) => {
                   const incPct = Math.round((m.income / sixMonthCashflow.maxVal) * 100);
                   const expPct = Math.round((m.expense / sixMonthCashflow.maxVal) * 100);
@@ -1206,11 +1198,11 @@ export default function App() {
                 })}
               </div>
 
-              <div className="grid grid-cols-6 gap-3 pt-2.5 px-2 text-center">
+              <div className="grid grid-cols-6 gap-1.5 sm:gap-3 pt-2.5 px-0 sm:px-2 text-center">
                 {sixMonthCashflow.months.map((m) => (
                   <div key={m.key}>
                     <div className="text-xs font-bold text-slate-700">{m.label}</div>
-                    <div className={`text-[10px] font-semibold mt-0.5 ${m.net >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    <div className={`text-[9px] sm:text-[10px] font-semibold mt-0.5 truncate ${m.net >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                       {m.net >= 0 ? '+' : ''}{Math.round(m.net / 1000).toLocaleString('vi-VN')}k
                     </div>
                   </div>
@@ -1218,7 +1210,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
               <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-medium text-slate-500">Số dư khả dụng</span>
@@ -1265,7 +1257,7 @@ export default function App() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+              <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm min-w-0">
                 <h3 className="font-semibold text-slate-800 mb-4">So sánh Thu nhập & Chi tiêu</h3>
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
@@ -1282,7 +1274,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+              <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm min-w-0">
                 <h3 className="font-semibold text-slate-800 mb-4">Cơ cấu chi tiêu theo danh mục</h3>
                 {stats.expensePieData.length === 0 ? (
                   <div className="h-72 flex items-center justify-center text-sm text-slate-400">Chưa có dữ liệu chi tiêu để vẽ biểu đồ</div>
@@ -1290,7 +1282,7 @@ export default function App() {
                   <div className="h-72">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie data={stats.expensePieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>
+                        <Pie data={stats.expensePieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius="70%" label>
                           {stats.expensePieData.map((entry, idx) => <Cell key={idx} fill={entry.color} />)}
                         </Pie>
                         <Tooltip formatter={(val: any) => formatVND(Number(val))} />
@@ -1303,8 +1295,8 @@ export default function App() {
             </div>
 
             {stats.budgetProgress.length > 0 && (
-              <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
+              <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                   <h3 className="font-semibold text-slate-800">
                     Theo dõi Hạn mức Chi tiêu (Tháng {stats.budgetTargetYm.split('-')[1]}/{stats.budgetTargetYm.split('-')[0]})
                   </h3>
@@ -1319,7 +1311,7 @@ export default function App() {
                     const isWarn = !isOver && b.percent >= 80;
                     return (
                       <div key={b.id} className={'p-4 rounded-xl border ' + (isOver ? 'border-rose-200 bg-rose-50/60' : isWarn ? 'border-amber-200 bg-amber-50/40' : 'border-slate-100 bg-slate-50/50')}>
-                        <div className="flex justify-between text-sm mb-1.5">
+                        <div className="flex flex-wrap justify-between gap-x-2 gap-y-1 text-sm mb-1.5">
                           <span className="font-semibold text-slate-800 flex items-center gap-2">
                             <span className="w-3 h-3 rounded-full" style={{ backgroundColor: b.color }} />
                             {b.name}
@@ -1345,9 +1337,9 @@ export default function App() {
         )}
 
         {activeTab === 'wallets' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {wallets.length === 0 ? (
-              <div className="col-span-3 bg-white p-12 rounded-2xl border border-dashed border-slate-300 text-center">
+              <div className="col-span-full bg-white p-8 sm:p-12 rounded-2xl border border-dashed border-slate-300 text-center">
                 <p className="text-slate-500 mb-4">Bạn chưa có ví nào. Hãy tạo ví đầu tiên!</p>
                 <button onClick={openCreateWallet} className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium cursor-pointer">+ Tạo Ví ngay</button>
               </div>
@@ -1375,7 +1367,7 @@ export default function App() {
                       {w.type === 'CASH' && <Banknote className="w-5 h-5 text-emerald-600" />}
                       {w.type === 'BANK' && <CreditCard className="w-5 h-5 text-blue-600" />}
                       {w.type === 'EWALLET' && <Smartphone className="w-5 h-5 text-pink-600" />}
-                      <h3 className="text-lg font-bold text-slate-800">{w.name}</h3>
+                      <h3 className="text-lg font-bold text-slate-800 truncate">{w.name}</h3>
                     </div>
                     <div className="text-2xl font-bold text-emerald-600 mt-2">{formatVND(w.balance)}</div>
                   </div>
@@ -1392,24 +1384,24 @@ export default function App() {
         {activeTab === 'transactions' && (
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div className="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[250px]">
-                <div className="relative flex-1 max-w-xs">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 flex-1 min-w-0 w-full sm:w-auto">
+                <div className="relative w-full sm:flex-1 sm:max-w-xs">
                   <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                   <input type="text" placeholder="Tìm mô tả giao dịch..." value={filterKeyword} onChange={(e) => setFilterKeyword(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none" />
                 </div>
-                <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white cursor-pointer">
+                <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="flex-1 sm:flex-none min-w-0 px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white cursor-pointer">
                   <option value="">Tất cả loại</option>
                   <option value="INCOME">Thu nhập</option>
                   <option value="EXPENSE">Chi tiêu</option>
                   <option value="TRANSFER">Chuyển ví</option>
                 </select>
-                <select value={filterCategoryId} onChange={(e) => setFilterCategoryId(Number(e.target.value))} className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white cursor-pointer">
+                <select value={filterCategoryId} onChange={(e) => setFilterCategoryId(Number(e.target.value))} className="flex-1 sm:flex-none min-w-0 px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white cursor-pointer">
                   <option value={0}>Tất cả danh mục</option>
                   {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
-                <div className="flex items-center gap-1.5 border border-slate-200 rounded-xl px-3 py-2 bg-white">
-                  <ArrowUpDown className="w-4 h-4 text-slate-400" />
-                  <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="text-sm bg-transparent focus:outline-none cursor-pointer font-medium text-slate-700">
+                <div className="flex items-center gap-1.5 border border-slate-200 rounded-xl px-3 py-2 bg-white flex-1 sm:flex-none min-w-0">
+                  <ArrowUpDown className="w-4 h-4 text-slate-400 shrink-0" />
+                  <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="text-sm bg-transparent focus:outline-none cursor-pointer font-medium text-slate-700 w-full min-w-0">
                     <option value="DATE_DESC">Thời gian: Mới nhất trước</option>
                     <option value="DATE_ASC">Thời gian: Cũ nhất trước</option>
                     <option value="AMOUNT_DESC">Số tiền: Cao → Thấp</option>
@@ -1419,12 +1411,47 @@ export default function App() {
                   </select>
                 </div>
               </div>
-              <button onClick={handleExportCsv} className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium flex items-center gap-2 cursor-pointer">
+              <button onClick={handleExportCsv} className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium flex items-center justify-center gap-2 cursor-pointer w-full sm:w-auto">
                 <Download className="w-4 h-4" /> Xuất CSV
               </button>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile: danh sách dạng thẻ */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {filteredTransactions.length === 0 ? (
+                <div className="py-8 text-center text-sm text-slate-400">Chưa có giao dịch nào</div>
+              ) : (
+                filteredTransactions.map((t) => (
+                  <div key={t.id} className="p-4 flex items-start gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          {t.type === 'TRANSFER' ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-indigo-50 text-indigo-600 font-semibold whitespace-nowrap">Chuyển ví nội bộ</span>
+                          ) : (
+                            <span className="inline-flex items-center max-w-full px-2 py-0.5 rounded-full text-[11px] text-white font-medium truncate" style={{ backgroundColor: t.categoryColor || '#64748b' }}>{t.categoryName}</span>
+                          )}
+                        </div>
+                        <div className={'shrink-0 text-sm font-bold ' + (t.type === 'INCOME' ? 'text-emerald-600' : t.type === 'EXPENSE' ? 'text-rose-600' : 'text-indigo-600')}>
+                          {t.type === 'INCOME' ? '+' : t.type === 'EXPENSE' ? '-' : ''}{formatVND(t.amount)}
+                        </div>
+                      </div>
+                      <div className="mt-1.5 text-sm text-slate-700 break-words">{t.description || '-'}</div>
+                      <div className="mt-1 flex items-center justify-between gap-2 text-xs text-slate-400">
+                        <span className="truncate">{t.walletName}{t.targetWalletName ? ` → ${t.targetWalletName}` : ''} · {new Date(t.transactionDate).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                        <div className="flex items-center gap-0.5 shrink-0 -mr-1.5">
+                          <button onClick={() => openEditTx(t)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg cursor-pointer" title="Chỉnh sửa giao dịch"><Pencil className="w-4 h-4" /></button>
+                          <button onClick={() => handleDeleteTx(t.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer" title="Xóa giao dịch"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Tablet / Desktop: dạng bảng */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-100 select-none">
@@ -1477,7 +1504,7 @@ export default function App() {
         )}
 
         {activeTab === 'categories' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {categories.map((c) => {
               const limit = c.budgetLimit || 0;
               const spent = limit > 0
@@ -1500,7 +1527,7 @@ export default function App() {
                     <h3 className="text-lg font-bold text-slate-800">{c.name}</h3>
                     {c.type === 'EXPENSE' && (
                       <div className="mt-3">
-                        <div className="flex justify-between text-xs text-slate-500 mb-1.5">
+                        <div className="flex flex-wrap justify-between gap-x-2 gap-y-0.5 text-xs text-slate-500 mb-1.5">
                           <span>
                             Đã chi{limit > 0 ? ` (T${targetLabel})` : ''}: <strong className="text-slate-700">{formatVND(spent)}</strong>
                           </span>
@@ -1538,9 +1565,9 @@ export default function App() {
         )}
 
         {activeTab === 'goals' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {goals.length === 0 ? (
-              <div className="col-span-3 bg-white p-12 rounded-2xl border border-dashed border-slate-300 text-center">
+              <div className="col-span-full bg-white p-8 sm:p-12 rounded-2xl border border-dashed border-slate-300 text-center">
                 <Target className="w-10 h-10 text-emerald-600 mx-auto mb-3" />
                 <p className="text-slate-600 font-medium mb-1">Chưa có mục tiêu tiết kiệm nào</p>
                 <p className="text-xs text-slate-400 mb-4">Hãy đặt mục tiêu tích lũy (VD: Mua Laptop, Quỹ dự phòng, Du lịch...)</p>
@@ -1569,7 +1596,7 @@ export default function App() {
                         <div className="text-xs text-slate-400 mt-0.5">Hạn hoàn thành: {new Date(g.deadline).toLocaleDateString('vi-VN')}</div>
                       )}
                       <div className="mt-4">
-                        <div className="flex justify-between text-xs mb-1.5">
+                        <div className="flex flex-wrap justify-between gap-x-2 gap-y-0.5 text-xs mb-1.5">
                           <span className="font-bold text-emerald-600">{formatVND(current)}</span>
                           <span className="text-slate-500">Mục tiêu: {formatVND(g.targetAmount)}</span>
                         </div>
@@ -1590,9 +1617,9 @@ export default function App() {
         )}
 
         {activeTab === 'recurring' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {recurrings.length === 0 ? (
-              <div className="col-span-3 bg-white p-12 rounded-2xl border border-dashed border-slate-300 text-center">
+              <div className="col-span-full bg-white p-8 sm:p-12 rounded-2xl border border-dashed border-slate-300 text-center">
                 <Repeat className="w-10 h-10 text-emerald-600 mx-auto mb-3" />
                 <p className="text-slate-600 font-medium mb-1">Chưa có khoản thu/chi định kỳ nào</p>
                 <p className="text-xs text-slate-400 mb-4">Thiết lập Tiền trọ, Internet, Netflix hoặc Lương tháng để thanh toán nhanh chỉ với 1 bấm</p>
@@ -1683,8 +1710,8 @@ export default function App() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                  <div className="lg:col-span-3 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between">
+                  <div className="lg:col-span-3 bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <h3 className="font-bold text-slate-800 flex items-center gap-2">
                         <Bot className="w-5 h-5 text-indigo-600" /> Chẩn đoán & Khuyến nghị từ dữ liệu thực tế
                       </h3>
@@ -1733,7 +1760,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[460px] overflow-hidden">
+                  <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[70dvh] max-h-[520px] min-h-[380px] lg:h-[460px] overflow-hidden">
                     <div className="px-4 py-3 bg-gradient-to-r from-indigo-50 via-purple-50/70 to-white border-b border-slate-100 shrink-0">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
@@ -2027,7 +2054,7 @@ export default function App() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">Hạn hoàn thành (Tùy chọn)</label>
-                <div className="grid grid-cols-4 gap-1.5 mb-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mb-2">
                   {[{ label: '+1 tháng', m: 1 }, { label: '+3 tháng', m: 3 }, { label: '+6 tháng', m: 6 }, { label: '+1 năm', m: 12 }].map((p) => {
                     const d = new Date(); d.setMonth(d.getMonth() + p.m);
                     const iso = d.toISOString().split('T')[0];
@@ -2153,9 +2180,10 @@ export default function App() {
       />
 
       {/* FLOATING AI CHAT WIDGET */}
-      <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999 }} className="flex flex-col items-end">
+      {activeTab !== 'ai' && !mobileMenuOpen && !showWalletModal && !showTxModal && !showCatModal && !showGoalModal && !showRecModal && !contribGoal && !showChangePassModal && (
+      <div style={{ zIndex: 9999 }} className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 flex flex-col items-end">
         {miniChatOpen && (
-          <div className="mb-3 w-[calc(100vw-32px)] sm:w-[370px] h-[420px] sm:h-[440px] bg-white rounded-2xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden">
+          <div className="mb-3 w-[calc(100vw-32px)] sm:w-[370px] h-[min(440px,calc(100dvh-110px))] bg-white rounded-2xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden">
             <div className="px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
@@ -2289,14 +2317,14 @@ export default function App() {
         <button
           type="button"
           onClick={() => setMiniChatOpen((prev) => !prev)}
-          style={{ width: '56px', height: '56px' }}
-          className="rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-xl flex items-center justify-center cursor-pointer transition-transform active:scale-95 relative"
+          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-xl flex items-center justify-center cursor-pointer transition-transform active:scale-95 relative"
           title="Mở Trợ lý Tài chính AI"
         >
-          <Bot className="w-6 h-6" />
-          <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-white"></span>
+          <Bot className="w-5 h-5 sm:w-6 sm:h-6" />
+          <span className="absolute top-0 right-0 sm:top-0.5 sm:right-0.5 w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-emerald-400 border-2 border-white"></span>
         </button>
       </div>
+      )}
       {/* END FLOATING AI CHAT WIDGET */}
     </div>
   );

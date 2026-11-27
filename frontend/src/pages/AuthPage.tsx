@@ -81,10 +81,12 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         client_id: googleClientId,
         callback: handleGoogleCallback,
       });
+      const containerWidth = googleBtnRef.current.parentElement?.clientWidth || 320;
+      const btnWidth = Math.min(360, Math.max(240, Math.floor(containerWidth)));
       window.google.accounts.id.renderButton(googleBtnRef.current, {
         theme: 'outline',
         size: 'large',
-        width: 360,
+        width: btnWidth,
         text: mode === 'login' ? 'signin_with' : 'signup_with',
         shape: 'rectangular',
         locale: 'vi',
