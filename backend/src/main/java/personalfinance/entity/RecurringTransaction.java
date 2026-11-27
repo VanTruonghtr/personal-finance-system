@@ -20,16 +20,16 @@ public class RecurringTransaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, columnDefinition = "NVARCHAR(255)")
+    @Column(nullable = false, length = 255)
     private String title;
 
     @Column(nullable = false)
     private Double amount;
 
-    @Column(nullable = false, columnDefinition = "NVARCHAR(20)")
+    @Column(nullable = false, length = 20)
     private String type; // EXPENSE / INCOME
 
-    @Column(nullable = false, columnDefinition = "NVARCHAR(20)")
+    @Column(nullable = false, length = 20)
     @Builder.Default
     private String frequency = "MONTHLY"; // DAILY / WEEKLY / MONTHLY / YEARLY
 

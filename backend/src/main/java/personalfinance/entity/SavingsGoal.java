@@ -19,7 +19,7 @@ public class SavingsGoal {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, columnDefinition = "NVARCHAR(255)")
+    @Column(nullable = false, length = 255)
     private String name;
 
     @Column(name = "target_amount", nullable = false)
@@ -33,7 +33,7 @@ public class SavingsGoal {
     private LocalDate deadline;
 
     @Builder.Default
-    @Column(columnDefinition = "NVARCHAR(50)")
+    @Column(length = 50)
     private String color = "#10b981";
 
     @ManyToOne(fetch = FetchType.LAZY)

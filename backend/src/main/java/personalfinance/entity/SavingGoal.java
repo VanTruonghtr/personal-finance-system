@@ -18,7 +18,7 @@ public class SavingGoal {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, columnDefinition = "NVARCHAR(150)")
+    @Column(nullable = false, length = 150)
     private String name;
 
     @Column(name = "target_amount", nullable = false, precision = 18, scale = 2)

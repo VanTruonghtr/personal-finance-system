@@ -1,12 +1,249 @@
 @import "tailwindcss";
 
-body {
-  background-color: #f8fafc;
-  color: #0f172a;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+:root {
+  --apple-bg: #f2f2f7;
+  --apple-surface: #ffffff;
+  --apple-glass: rgba(255, 255, 255, 0.72);
+  --apple-glass-strong: rgba(255, 255, 255, 0.86);
+  --apple-ink: #1d1d1f;
+  --apple-secondary: #6e6e73;
+  --apple-tertiary: #86868b;
+  --apple-border: rgba(0, 0, 0, 0.055);
+  --apple-border-strong: rgba(0, 0, 0, 0.1);
+  --apple-blue: #0071e3;
+  --apple-blue-hover: #0077ed;
+  --apple-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --apple-spring: cubic-bezier(0.34, 1.35, 0.64, 1);
+  --apple-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.03), 0 6px 20px -6px rgba(0, 0, 0, 0.06);
+  --apple-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.04), 0 18px 40px -12px rgba(0, 0, 0, 0.1);
+  --apple-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.1), 0 28px 64px -16px rgba(0, 0, 0, 0.18);
 }
 
-/* === HTR_MOBILE_RESPONSIVE_START === */
+html {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--apple-bg);
+  background-image:
+    radial-gradient(1000px circle at 0% -15%, rgba(0, 113, 227, 0.07), transparent 55%),
+    radial-gradient(800px circle at 100% 0%, rgba(175, 82, 222, 0.055), transparent 50%),
+    radial-gradient(900px circle at 50% 100%, rgba(52, 199, 89, 0.04), transparent 55%);
+  background-attachment: fixed;
+  color: var(--apple-ink);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+.tabular-nums,
+table td,
+[class*="font-bold"],
+[class*="font-extrabold"],
+[class*="font-semibold"] {
+  font-variant-numeric: tabular-nums;
+}
+
+.apple-glass {
+  background: var(--apple-glass);
+  backdrop-filter: saturate(190%) blur(24px);
+  -webkit-backdrop-filter: saturate(190%) blur(24px);
+}
+
+.apple-glass-strong {
+  background: var(--apple-glass-strong);
+  backdrop-filter: saturate(200%) blur(30px);
+  -webkit-backdrop-filter: saturate(200%) blur(30px);
+}
+
+main .bg-white.rounded-2xl {
+  border-radius: 26px;
+  border-color: var(--apple-border);
+  box-shadow: var(--apple-shadow-sm);
+  transition: transform 0.36s var(--apple-ease), box-shadow 0.36s var(--apple-ease), border-color 0.25s ease;
+}
+
+@media (hover: hover) {
+  main .bg-white.rounded-2xl:hover {
+    box-shadow: var(--apple-shadow-md);
+  }
+}
+
+.apple-titanium-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  background:
+    radial-gradient(120% 100% at 100% 0%, rgba(120, 165, 255, 0.22) 0%, transparent 52%),
+    radial-gradient(90% 90% at 0% 100%, rgba(175, 82, 222, 0.16) 0%, transparent 55%),
+    linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 48%, #141416 100%);
+  box-shadow: 0 18px 44px -14px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  transition: transform 0.42s var(--apple-ease), box-shadow 0.42s var(--apple-ease);
+}
+
+.apple-wallet-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 26px;
+  box-shadow: 0 14px 34px -12px rgba(15, 23, 42, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transition: transform 0.38s var(--apple-ease), box-shadow 0.38s var(--apple-ease);
+}
+
+.apple-titanium-card::after,
+.apple-wallet-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 20%, rgba(255, 255, 255, 0.14) 48%, transparent 75%);
+  transform: translateX(-120%);
+  transition: transform 0.85s var(--apple-ease);
+  pointer-events: none;
+}
+
+@media (hover: hover) {
+  .apple-titanium-card:hover,
+  .apple-wallet-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 52px -14px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+
+  .apple-titanium-card:hover::after,
+  .apple-wallet-card:hover::after {
+    transform: translateX(120%);
+  }
+}
+
+button {
+  transition: transform 0.2s var(--apple-ease), background-color 0.2s ease, box-shadow 0.22s ease, color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.965);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--apple-blue) !important;
+  box-shadow: 0 0 0 3.5px rgba(0, 113, 227, 0.15);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.14);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.26);
+}
+
+@keyframes appleFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.988);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes appleModalIn {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes appleBackdropIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes applePopoverIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes appleFloatIn {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.apple-tab-enter {
+  animation: appleFadeUp 0.42s var(--apple-ease) both;
+}
+
+.apple-stagger > * {
+  animation: appleFadeUp 0.46s var(--apple-ease) both;
+}
+.apple-stagger > *:nth-child(1) { animation-delay: 0.02s; }
+.apple-stagger > *:nth-child(2) { animation-delay: 0.07s; }
+.apple-stagger > *:nth-child(3) { animation-delay: 0.12s; }
+.apple-stagger > *:nth-child(4) { animation-delay: 0.17s; }
+.apple-stagger > *:nth-child(5) { animation-delay: 0.22s; }
+.apple-stagger > *:nth-child(6) { animation-delay: 0.27s; }
+
+.apple-popover-enter {
+  transform-origin: top right;
+  animation: applePopoverIn 0.26s var(--apple-ease) both;
+}
+
+.apple-chat-enter {
+  transform-origin: bottom right;
+  animation: appleFloatIn 0.3s var(--apple-ease) both;
+}
+
+div[class*="fixed"][class*="inset-0"][class*="bg-black"] {
+  background-color: rgba(15, 23, 42, 0.3) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: appleBackdropIn 0.22s ease-out both;
+}
+
+div[class*="fixed"][class*="inset-0"][class*="bg-black"] > div {
+  border-radius: 28px !important;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: var(--apple-shadow-lg) !important;
+  animation: appleModalIn 0.32s var(--apple-ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 html,
 body,
 #root {
@@ -15,7 +252,6 @@ body,
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Chống vỡ badge danh mục kiểu bậc thang */
 table span[class*="rounded-full"],
 td span[class*="rounded-full"] {
   display: inline-flex !important;
@@ -29,19 +265,21 @@ table th {
   white-space: nowrap;
 }
 
-/* Thanh bar bên (Sidebar) trên máy tính: ghim cố định khi cuộn */
 @media (min-width: 1024px) {
   aside {
     position: sticky !important;
-    top: 0 !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
+    top: 14px !important;
+    height: calc(100vh - 28px) !important;
+    max-height: calc(100vh - 28px) !important;
+    margin: 14px 0 14px 14px !important;
+    border-radius: 26px !important;
+    border: 1px solid rgba(255, 255, 255, 0.85) !important;
+    box-shadow: 0 8px 30px -10px rgba(0, 0, 0, 0.09) !important;
     overflow-y: auto !important;
     flex-shrink: 0 !important;
   }
 }
 
-/* Thanh bar bên (Sidebar) & Header trên điện thoại / tablet */
 @media (max-width: 1023px) {
   aside {
     position: fixed !important;
@@ -52,7 +290,7 @@ table th {
     max-height: 100dvh !important;
     overflow-y: auto !important;
     z-index: 50 !important;
-    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.22);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
   }
 
   main {
@@ -94,4 +332,3 @@ table th {
     min-width: 0 !important;
   }
 }
-/* === HTR_MOBILE_RESPONSIVE_END === */

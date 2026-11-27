@@ -38,8 +38,8 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/auth/change-password").authenticated()
-                .requestMatchers("/api/auth/**", "/error", "/actuator/**").permitAll()
+                .requestMatchers("/api/auth/change-password", "/api/auth/me", "/api/auth/profile").authenticated()
+                .requestMatchers("/api/auth/**", "/error", "/actuator/**", "/swagger-ui.html", "/v3/api-docs").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

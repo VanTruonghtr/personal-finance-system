@@ -29,6 +29,11 @@ public class TransactionService {
 
     @Transactional
     public Transaction createTransaction(Long walletId, Long targetWalletId, Long categoryId, String type, Double amount, String description, Long userId) {
+        return createTransaction(walletId, targetWalletId, categoryId, type, amount, description, LocalDateTime.now(), userId);
+    }
+
+    @Transactional
+    public Transaction createTransaction(Long walletId, Long targetWalletId, Long categoryId, String type, Double amount, String description, LocalDateTime transactionDate, Long userId) {
         Wallet wallet = walletRepository.findByIdAndUserId(walletId, userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy ví nguồn"));
         User user = userRepository.findById(userId)
@@ -64,7 +69,7 @@ public class TransactionService {
                 .type(type)
                 .amount(val)
                 .description(description)
-                .transactionDate(LocalDateTime.now())
+                .transactionDate(transactionDate != null ? transactionDate : LocalDateTime.now())
                 .wallet(wallet)
                 .targetWallet(targetWallet)
                 .category(category)

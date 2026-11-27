@@ -65,7 +65,7 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
       <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <KeyRound className="w-5 h-5 text-emerald-600" /> Đổi mật khẩu
+            <KeyRound className="w-5 h-5 text-[#0071e3]" /> Đổi mật khẩu
           </h3>
           <button
             type="button"
@@ -137,7 +137,7 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium cursor-pointer disabled:opacity-60"
+              className="px-4 py-2 text-sm bg-[#0071e3] hover:bg-[#0077ed] text-white rounded-full font-medium cursor-pointer disabled:opacity-60"
             >
               {loading ? 'Đang lưu...' : 'Cập nhật mật khẩu'}
             </button>

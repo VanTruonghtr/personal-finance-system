@@ -77,6 +77,7 @@ public class AuthController {
         body.put("email", user.getEmail());
         body.put("fullName", user.getFullName() != null ? user.getFullName() : "Người dùng");
         body.put("role", user.getRole() != null ? user.getRole() : "USER");
+        body.put("monthlyBudgetLimit", user.getMonthlyBudgetLimit() != null ? user.getMonthlyBudgetLimit() : 0.0);
         return body;
     }
 
@@ -328,5 +329,48 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(401).body(Map.of("message", "Xác thực Google thất bại hoặc token đã hết hạn"));
         }
+    }
+
+    // 8. LẤY THÔNG TIN HỒ SƠ CÁ NHÂN
+    @GetMapping("/me")
+    public ResponseEntity<?> getMyProfile() {
+        User currentUser = currentUserService.getCurrentUser();
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("id", currentUser.getId());
+        body.put("email", currentUser.getEmail());
+        body.put("fullName", currentUser.getFullName() != null ? currentUser.getFullName() : "Người dùng");
+        body.put("role", currentUser.getRole() != null ? currentUser.getRole() : "USER");
+        body.put("monthlyBudgetLimit", currentUser.getMonthlyBudgetLimit() != null ? currentUser.getMonthlyBudgetLimit() : 0.0);
+        return ResponseEntity.ok(body);
+    }
+
+    // 9. CẬP NHẬT HỒ SƠ CÁ NHÂN & NGÂN SÁCH TỔNG THÁNG
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@RequestBody Map<String, Object> req) {
+        User currentUser = currentUserService.getCurrentUser();
+        if (req.containsKey("fullName") && req.get("fullName") != null) {
+            String name = String.valueOf(req.get("fullName")).trim();
+            if (name.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Họ tên không được để trống"));
+            }
+            currentUser.setFullName(name);
+        }
+        if (req.containsKey("monthlyBudgetLimit") && req.get("monthlyBudgetLimit") != null) {
+            try {
+                double limit = Double.parseDouble(String.valueOf(req.get("monthlyBudgetLimit")));
+                currentUser.setMonthlyBudgetLimit(Math.max(0.0, limit));
+            } catch (NumberFormatException ignored) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Ngân sách tháng không hợp lệ"));
+            }
+        }
+        User saved = userRepository.save(currentUser);
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("message", "Cập nhật hồ sơ thành công!");
+        body.put("id", saved.getId());
+        body.put("email", saved.getEmail());
+        body.put("fullName", saved.getFullName());
+        body.put("role", saved.getRole() != null ? saved.getRole() : "USER");
+        body.put("monthlyBudgetLimit", saved.getMonthlyBudgetLimit() != null ? saved.getMonthlyBudgetLimit() : 0.0);
+        return ResponseEntity.ok(body);
     }
 }

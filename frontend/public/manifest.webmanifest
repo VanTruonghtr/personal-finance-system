@@ -1,0 +1,19 @@
+{
+  "name": "HTR FinMind — Quản lý Tài chính Cá nhân",
+  "short_name": "HTR FinMind",
+  "description": "Hệ thống quản lý tài chính cá nhân tích hợp Quick-Parse, đối soát sao kê CSV, Burn-rate Alert và phân tích chi tiêu.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#f2f2f7",
+  "theme_color": "#1d1d1f",
+  "orientation": "portrait-primary",
+  "lang": "vi",
+  "icons": [
+    {
+      "src": "/pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

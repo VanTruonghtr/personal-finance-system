@@ -2,15 +2,21 @@ import React, { useEffect, useState, useMemo, useRef } from 'react';
 import axiosClient from './api/axiosClient';
 import AuthPage from './pages/AuthPage';
 import ChangePasswordModal from './components/ChangePasswordModal';
+import QuickParseBar from './components/QuickParseBar';
+import CsvImportModal from './components/CsvImportModal';
+import KeywordRulesPanel from './components/KeywordRulesPanel';
+import AnalyticsWidgets from './components/AnalyticsWidgets';
+import ProfileModal from './components/ProfileModal';
+import AdminPanel from './components/AdminPanel';
 import type { Wallet, TransactionItem, UserProfile } from './types/finance';
 import {
   LayoutDashboard, Wallet as WalletIcon, ArrowLeftRight, LogOut,
   Plus, TrendingUp, TrendingDown, Trash2, Search, CreditCard, Banknote, Smartphone,
   Pencil, Download, Calendar, ArrowUpDown, Tags, AlertTriangle, Target, PiggyBank, Repeat, Play, Eye, EyeOff, Sparkles, Send, Bot, CheckCircle2, ShieldAlert,
-  Bell, Menu, X, PanelLeftClose, PanelLeftOpen, KeyRound
+  Bell, Menu, X, PanelLeftClose, PanelLeftOpen, KeyRound, Upload, Shield, User as UserIcon
 } from 'lucide-react';
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
 
 type TabType =
@@ -20,7 +26,8 @@ type TabType =
   | 'categories'
   | 'goals'
   | 'recurring'
-  | 'ai';
+  | 'ai'
+  | 'admin';
 
 const formatVND = (amount: number) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0);
@@ -126,6 +133,7 @@ function getTabFromPathname(pathname: string): TabType {
   if (p.includes('/goal')) return 'goals';
   if (p.includes('/recurring')) return 'recurring';
   if (p.includes('/ai')) return 'ai';
+  if (p.includes('/admin')) return 'admin';
   return 'dashboard';
 }
 
@@ -237,6 +245,7 @@ export default function App() {
   const [aiLoading, setAiLoading] = useState<boolean>(false);
   const [aiQuestion, setAiQuestion] = useState<string>('');
   const [aiThinking, setAiThinking] = useState<boolean>(false);
+  const [aiEngineInfo, setAiEngineInfo] = useState<{ provider?: string; model?: string; warning?: string }>({});
   const [miniChatOpen, setMiniChatOpen] = useState<boolean>(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const miniChatEndRef = useRef<HTMLDivElement | null>(null);
@@ -258,6 +267,11 @@ export default function App() {
   const [walletStatus, setWalletStatus] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
 
   const [showChangePassModal, setShowChangePassModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [catSubTab, setCatSubTab] = useState<'list' | 'rules'>('list');
+  const [analyticsOverview, setAnalyticsOverview] = useState<any>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
   // State Modal Giao dịch
   const [showTxModal, setShowTxModal] = useState(false);
@@ -377,10 +391,24 @@ export default function App() {
     }
   };
 
+  const fetchAnalytics = async (monthVal = selectedMonth) => {
+    setAnalyticsLoading(true);
+    try {
+      const params = monthVal && monthVal !== 'ALL' ? { month: monthVal } : {};
+      const res = await axiosClient.get('/analytics/overview', { params });
+      setAnalyticsOverview(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchAllData();
       fetchAiAnalysis(selectedMonth);
+      fetchAnalytics(selectedMonth);
     }
   }, [user, selectedMonth]);
 
@@ -391,8 +419,9 @@ export default function App() {
     if (!customQ) setAiQuestion('');
     setAiThinking(true);
     try {
-      const res = await axiosClient.post('/ai/ask', { question: q, month: selectedMonth, history: aiMessages.slice(-6) });
+      const res = await axiosClient.post('/ai/ask', { question: q, month: selectedMonth, history: aiMessages.slice(-8) });
       setAiMessages((prev) => [...prev, { role: 'ai', text: res.data.answer }]);
+      setAiEngineInfo({ provider: res.data.provider, model: res.data.model, warning: res.data.warning });
     } catch {
       setAiMessages((prev) => [...prev, { role: 'ai', text: 'Xin lỗi, không thể kết nối tới máy chủ phân tích lúc này.' }]);
     } finally {
@@ -771,7 +800,7 @@ export default function App() {
     const headers = ['ID', 'Thời gian', 'Loại', 'Danh mục', 'Ví nguồn', 'Ví nhận', 'Mô tả', 'Số tiền (VND)'];
     const rows = filteredTransactions.map((t) => [
       t.id,
-      new Date(t.transactionDate).toLocaleString('vi-VN'),
+      `"${new Date(t.transactionDate).toLocaleString('vi-VN')}"`,
       t.type === 'INCOME' ? 'Thu nhập' : t.type === 'EXPENSE' ? 'Chi tiêu' : 'Chuyển ví',
       t.categoryName || '',
       t.walletName || '',
@@ -855,7 +884,7 @@ export default function App() {
   const recFilteredCategories = categories.filter((c) => c.type === recType);
 
   return (
-    <div className="min-h-screen flex bg-slate-50 relative overflow-x-clip">
+    <div className="min-h-screen flex bg-transparent text-[#1d1d1f] relative overflow-x-clip">
       {/* Lớp phủ mờ khi mở menu trên điện thoại */}
       {mobileMenuOpen && (
         <div
@@ -866,7 +895,7 @@ export default function App() {
 
       <aside
         className={
-          'fixed lg:sticky top-0 left-0 z-50 h-screen bg-white border-r border-slate-200 flex flex-col justify-between transition-all duration-300 shrink-0 ' +
+          'fixed lg:sticky top-0 left-0 z-50 h-screen apple-glass-strong border-r border-black/[0.06] flex flex-col justify-between transition-all duration-300 shrink-0 ' +
           (mobileMenuOpen ? 'translate-x-0 ' : '-translate-x-full lg:translate-x-0 ') +
           (sidebarCollapsed ? 'w-64 lg:w-20 p-4 lg:px-2.5' : 'w-64 p-5')
         }
@@ -874,7 +903,7 @@ export default function App() {
         <div className="overflow-y-auto overflow-x-hidden">
           <div className={'flex items-center justify-between mb-7 ' + (sidebarCollapsed ? 'lg:justify-center px-1' : 'px-1')}>
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold shrink-0">
+              <div className="w-9 h-9 rounded-[11px] bg-gradient-to-br from-[#0071e3] to-[#2997ff] text-white flex items-center justify-center font-bold shadow-sm shrink-0">
                 F
               </div>
               <div className={sidebarCollapsed ? 'lg:hidden' : ''}>
@@ -923,7 +952,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('dashboard')}
               title="Tổng quan & Thống kê"
-              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'dashboard' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
+              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'dashboard' ? 'bg-[#1d1d1f] text-white font-semibold shadow-sm' : 'text-[#424245] hover:bg-black/[0.04]')}>
               <LayoutDashboard className="w-4 h-4 shrink-0" />
               <span className={sidebarCollapsed ? 'lg:hidden truncate' : 'truncate'}>Tổng quan & Thống kê</span>
             </button>
@@ -931,7 +960,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('wallets')}
               title={`Quản lý Ví tiền (${wallets.length})`}
-              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'wallets' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
+              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'wallets' ? 'bg-[#1d1d1f] text-white font-semibold shadow-sm' : 'text-[#424245] hover:bg-black/[0.04]')}>
               <WalletIcon className="w-4 h-4 shrink-0" />
               <span className={sidebarCollapsed ? 'lg:hidden truncate' : 'truncate'}>Quản lý Ví tiền ({wallets.length})</span>
             </button>
@@ -939,7 +968,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('transactions')}
               title={`Sổ Giao dịch (${monthFilteredTx.length})`}
-              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'transactions' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
+              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'transactions' ? 'bg-[#1d1d1f] text-white font-semibold shadow-sm' : 'text-[#424245] hover:bg-black/[0.04]')}>
               <ArrowLeftRight className="w-4 h-4 shrink-0" />
               <span className={sidebarCollapsed ? 'lg:hidden truncate' : 'truncate'}>Sổ Giao dịch ({monthFilteredTx.length})</span>
             </button>
@@ -947,7 +976,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('categories')}
               title={`Danh mục & Ngân sách (${categories.length})`}
-              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'categories' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
+              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'categories' ? 'bg-[#1d1d1f] text-white font-semibold shadow-sm' : 'text-[#424245] hover:bg-black/[0.04]')}>
               <Tags className="w-4 h-4 shrink-0" />
               <span className={sidebarCollapsed ? 'lg:hidden truncate' : 'truncate'}>Danh mục & Ngân sách ({categories.length})</span>
             </button>
@@ -955,7 +984,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('goals')}
               title={`Mục tiêu Tiết kiệm (${goals.length})`}
-              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'goals' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
+              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'goals' ? 'bg-[#1d1d1f] text-white font-semibold shadow-sm' : 'text-[#424245] hover:bg-black/[0.04]')}>
               <Target className="w-4 h-4 shrink-0" />
               <span className={sidebarCollapsed ? 'lg:hidden truncate' : 'truncate'}>Mục tiêu Tiết kiệm ({goals.length})</span>
             </button>
@@ -963,7 +992,7 @@ export default function App() {
             <button
               onClick={() => setActiveTab('recurring')}
               title={`Giao dịch Định kỳ (${recurrings.length})`}
-              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'recurring' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100')}>
+              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'recurring' ? 'bg-[#1d1d1f] text-white font-semibold shadow-sm' : 'text-[#424245] hover:bg-black/[0.04]')}>
               <Repeat className="w-4 h-4 shrink-0" />
               <span className={sidebarCollapsed ? 'lg:hidden truncate' : 'truncate'}>Giao dịch Định kỳ ({recurrings.length})</span>
             </button>
@@ -971,18 +1000,36 @@ export default function App() {
             <button
               onClick={() => { setActiveTab('ai'); fetchAiAnalysis(selectedMonth); }}
               title="AI Phân tích Tài chính"
-              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'ai' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-indigo-700 bg-indigo-50/70 hover:bg-indigo-100')}>
+              className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'ai' ? 'bg-gradient-to-r from-[#0071e3] via-[#5856d6] to-[#af52de] text-white shadow-sm' : 'text-[#5856d6] bg-[#5856d6]/[0.08] hover:bg-[#5856d6]/[0.14]')}>
               <Sparkles className="w-4 h-4 shrink-0" />
               <span className={sidebarCollapsed ? 'lg:hidden truncate' : 'truncate'}>AI Phân tích Tài chính</span>
             </button>
+            {user.role?.toUpperCase() === 'ADMIN' && (
+              <button
+                onClick={() => setActiveTab('admin')}
+                title="Quản trị Hệ thống"
+                className={'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0 ' : '') + (activeTab === 'admin' ? 'bg-[#1d1d1f] text-white font-semibold shadow-sm' : 'text-[#424245] hover:bg-black/[0.04]')}>
+                <Shield className="w-4 h-4 shrink-0" />
+                <span className={sidebarCollapsed ? 'lg:hidden truncate' : 'truncate'}>Quản trị Hệ thống</span>
+              </button>
+            )}
           </nav>
         </div>
 
         <div className="pt-4 border-t border-slate-100">
-          <div className={'px-2 mb-3 ' + (sidebarCollapsed ? 'lg:hidden' : '')}>
-            <div className="text-sm font-semibold text-slate-800 truncate">{user.fullName}</div>
-            <div className="text-xs text-slate-400 truncate">{user.email}</div>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowProfileModal(true)}
+            title="Hồ sơ & Ngân sách tổng"
+            className={'w-full text-left px-2.5 py-2 mb-2 rounded-xl hover:bg-black/[0.04] transition cursor-pointer flex items-center gap-2.5 ' + (sidebarCollapsed ? 'lg:justify-center lg:px-0' : '')}>
+            <div className="w-8 h-8 rounded-full bg-[#1d1d1f] text-white flex items-center justify-center text-xs font-bold shrink-0">
+              <UserIcon className="w-4 h-4" />
+            </div>
+            <div className={'min-w-0 ' + (sidebarCollapsed ? 'lg:hidden' : '')}>
+              <div className="text-sm font-semibold text-[#1d1d1f] truncate">{user.fullName}</div>
+              <div className="text-xs text-[#6e6e73] truncate">{user.email}</div>
+            </div>
+          </button>
 
           <button
             onClick={() => setShowChangePassModal(true)}
@@ -1004,7 +1051,7 @@ export default function App() {
 
             <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
         {/* Thanh trên cố định cho điện thoại */}
-        <div className="lg:hidden sticky top-0 z-30 -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-4 px-4 py-3 bg-white/95 backdrop-blur border-b border-slate-200 flex items-center justify-between">
+        <div className="lg:hidden sticky top-0 z-30 -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 mb-5 px-4 py-3 apple-glass border-b border-black/[0.06] flex items-center justify-between">
           <div className="flex items-center gap-2.5 min-w-0">
             <button
               type="button"
@@ -1014,7 +1061,7 @@ export default function App() {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+            <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-[#0071e3] to-[#2997ff] text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
               F
             </div>
             <span className="font-bold text-slate-900 text-base truncate">HTR FinMind</span>
@@ -1023,7 +1070,7 @@ export default function App() {
         <header className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
             <div className="min-w-0">
-            <h1 className="text-lg sm:text-2xl font-bold text-slate-900 leading-tight sm:truncate">
+            <h1 className="text-xl sm:text-[26px] font-bold tracking-[-0.025em] text-[#1d1d1f] leading-tight sm:truncate">
               {activeTab === 'dashboard' && 'Tổng quan tài chính'}
               {activeTab === 'wallets' && 'Danh sách Ví & Tài khoản'}
               {activeTab === 'transactions' && 'Lịch sử Giao dịch'}
@@ -1031,22 +1078,24 @@ export default function App() {
               {activeTab === 'goals' && 'Mục tiêu Tiết kiệm & Tích lũy'}
               {activeTab === 'recurring' && 'Khoản Thu / Chi Định kỳ'}
               {activeTab === 'ai' && 'Trợ lý AI Phân tích Tài chính'}
+              {activeTab === 'admin' && 'Quản trị Hệ thống'}
             </h1>
             <p className="hidden sm:block text-xs sm:text-sm text-slate-500 truncate">Theo dõi dòng tiền và phân tích chi tiêu theo thời gian thực</p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
             <div
               onClick={() => setActiveTab('wallets')}
               title="Nhấp để xem chi tiết Quản lý Ví tiền"
-              className="flex items-center gap-2.5 bg-emerald-50/90 hover:bg-emerald-100/90 border border-emerald-200 px-3 sm:px-3.5 py-2 rounded-xl shadow-xs transition cursor-pointer select-none flex-1 sm:flex-none min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
+              className="flex items-center gap-2.5 bg-white/90 hover:bg-white border border-black/[0.07] px-3.5 py-2 rounded-2xl shadow-xs transition cursor-pointer select-none flex-1 sm:flex-none min-w-0">
+                <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-[#34c759] to-[#248a3d] text-white flex items-center justify-center shrink-0 shadow-2xs">
                 <WalletIcon className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-[11px] font-medium text-emerald-700 leading-none mb-0.5">Tổng số dư</div>
-                <div className="text-sm font-bold text-emerald-950 leading-none">
+                <div className="text-[11px] font-medium text-[#6e6e73] leading-none mb-0.5 truncate">Tổng số dư</div>
+                <div className="text-sm font-bold text-[#1d1d1f] leading-none truncate">
                   {hideBalance ? '•••••••• ₫' : formatVND(stats.totalBalance)}
                 </div>
               </div>
@@ -1056,7 +1105,7 @@ export default function App() {
                   e.stopPropagation();
                   setHideBalance(!hideBalance);
                 }}
-                className="ml-1 p-1 text-emerald-600 hover:bg-emerald-200/70 rounded-lg transition cursor-pointer"
+                className="ml-auto sm:ml-1 p-1 text-[#6e6e73] hover:text-[#1d1d1f] hover:bg-black/[0.05] rounded-lg transition cursor-pointer shrink-0"
                 title={hideBalance ? 'Hiện số dư' : 'Ẩn số dư'}>
                 {hideBalance ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
               </button>
@@ -1077,7 +1126,7 @@ export default function App() {
               </button>
 
               {showNotifDropdown && (
-                <div className="fixed left-3 right-3 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-full mt-2 sm:w-80 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 overflow-hidden">
+                <div className="fixed left-3 right-3 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-full mt-2 sm:w-80 apple-glass-strong apple-popover-enter rounded-2xl shadow-2xl border border-black/[0.08] z-50 overflow-hidden">
                   <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Nhắc lịch định kỳ ({dueRecurrings.length})</span>
                     <button type="button" onClick={() => setShowNotifDropdown(false)} className="text-xs text-slate-400 hover:text-slate-600 cursor-pointer">Đóng</button>
@@ -1111,13 +1160,15 @@ export default function App() {
               )}
             </div>
 
+            </div>
+
             {(activeTab === 'dashboard' || activeTab === 'transactions' || activeTab === 'categories' || activeTab === 'ai') && (
-              <div className="flex items-center gap-2 bg-white border border-slate-200 px-3 py-2 rounded-xl text-sm flex-1 sm:flex-none min-w-[150px]">
+              <div className="flex items-center gap-2 bg-white border border-slate-200 px-3 py-2.5 sm:py-2 rounded-xl text-sm w-full sm:w-auto">
                 <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
                 <select
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="bg-transparent focus:outline-none text-slate-700 font-medium cursor-pointer w-full min-w-0">
+                  className="bg-transparent focus:outline-none text-slate-700 font-medium cursor-pointer w-full sm:w-auto min-w-0">
                   <option value="ALL">Tất cả thời gian</option>
                   {availableMonths.map((m) => (
                     <option key={m} value={m}>
@@ -1129,23 +1180,23 @@ export default function App() {
             )}
 
             {activeTab === 'categories' ? (
-              <button onClick={openCreateCat} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2 shadow-sm cursor-pointer w-full sm:w-auto">
+              <button onClick={openCreateCat} className="px-4 py-2.5 bg-[#0071e3] hover:bg-[#0077ed] text-white rounded-full text-sm font-medium flex items-center justify-center gap-2 shadow-sm shadow-[#0071e3]/20 cursor-pointer w-full sm:w-auto whitespace-nowrap">
                 <Plus className="w-4 h-4" /> Thêm Danh mục
               </button>
             ) : activeTab === 'goals' ? (
-              <button onClick={openCreateGoal} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2 shadow-sm cursor-pointer w-full sm:w-auto">
+              <button onClick={openCreateGoal} className="px-4 py-2.5 bg-[#0071e3] hover:bg-[#0077ed] text-white rounded-full text-sm font-medium flex items-center justify-center gap-2 shadow-sm shadow-[#0071e3]/20 cursor-pointer w-full sm:w-auto whitespace-nowrap">
                 <Plus className="w-4 h-4" /> Tạo Mục tiêu mới
               </button>
             ) : activeTab === 'recurring' ? (
-              <button onClick={openCreateRec} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2 shadow-sm cursor-pointer w-full sm:w-auto">
+              <button onClick={openCreateRec} className="px-4 py-2.5 bg-[#0071e3] hover:bg-[#0077ed] text-white rounded-full text-sm font-medium flex items-center justify-center gap-2 shadow-sm shadow-[#0071e3]/20 cursor-pointer w-full sm:w-auto whitespace-nowrap">
                 <Plus className="w-4 h-4" /> Thêm Khoản Định kỳ
               </button>
             ) : (
               <>
-                <button onClick={openCreateWallet} className="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-medium flex items-center justify-center gap-2 cursor-pointer flex-1 sm:flex-none">
+                <button onClick={openCreateWallet} className="px-4 py-2.5 bg-white border border-black/[0.09] hover:bg-black/[0.03] text-[#1d1d1f] rounded-full text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer flex-1 sm:flex-none whitespace-nowrap shadow-2xs">
                   <Plus className="w-4 h-4" /> Thêm Ví
                 </button>
-                <button onClick={openCreateTx} className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2 shadow-sm cursor-pointer flex-1 sm:flex-none">
+                <button onClick={openCreateTx} className="px-4 py-2.5 bg-[#1d1d1f] hover:bg-black text-white rounded-full text-sm font-medium flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm cursor-pointer flex-1 sm:flex-none whitespace-nowrap">
                   <Plus className="w-4 h-4" /> Ghi Giao dịch
                 </button>
               </>
@@ -1154,7 +1205,12 @@ export default function App() {
         </header>
 
         {activeTab === 'dashboard' && (
-          <div className="space-y-6">
+          <div key="tab-dashboard" className="space-y-6 apple-tab-enter">
+            <QuickParseBar
+              wallets={wallets}
+              categories={categories}
+              onCreated={async () => { await fetchAllData(); await fetchAnalytics(selectedMonth); }}
+            />
             <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-2xs">
               <div className="flex flex-wrap items-center justify-between gap-2 mb-5">
                 <div>
@@ -1210,51 +1266,69 @@ export default function App() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
-              <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-slate-500">Số dư khả dụng</span>
-                  <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    <WalletIcon className="w-5 h-5" />
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-5 apple-stagger">
+              <div className="lg:col-span-2 apple-titanium-card p-6 text-white flex flex-col justify-between min-h-[168px]">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#34c759] shadow-[0_0_8px_#34c759]" />
+                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-white/65">Tổng tài sản khả dụng</span>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setHideBalance(!hideBalance)}
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white backdrop-blur-md transition cursor-pointer"
+                    title={hideBalance ? 'Hiện số dư' : 'Ẩn số dư'}>
+                    {hideBalance ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
-                <div className="text-xl font-bold text-slate-900">{formatVND(stats.totalBalance)}</div>
-                <div className="text-xs text-slate-400 mt-1">Từ {wallets.length} ví đang hoạt động</div>
+
+                <div className="my-4">
+                  <div className="text-3xl sm:text-[34px] font-bold tracking-[-0.03em] text-white leading-tight">
+                    {hideBalance ? '•••••••• ₫' : formatVND(stats.totalBalance)}
+                  </div>
+                  <div className="text-xs text-white/55 mt-1">Từ {wallets.length} ví đang hoạt động</div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-white/10 text-xs">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-white/90 font-medium">
+                    <PiggyBank className="w-3.5 h-3.5 text-[#bf5af2]" />
+                    Tiết kiệm: <strong>{hideBalance ? '••••' : formatVND(stats.totalSaved)}</strong> ({goals.length})
+                  </span>
+                </div>
               </div>
 
-              <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+              <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-slate-500">Quỹ tiết kiệm</span>
-                  <div className="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
-                    <PiggyBank className="w-5 h-5" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[#86868b]">Tổng Thu nhập</span>
+                  <div className="w-9 h-9 rounded-full bg-[#34c759]/12 text-[#248a3d] flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-xl font-bold text-purple-600">{formatVND(stats.totalSaved)}</div>
-                <div className="text-xs text-slate-400 mt-1">{goals.length} mục tiêu tích lũy</div>
+                <div>
+                  <div className="text-2xl font-bold tracking-tight text-[#248a3d]">+{formatVND(stats.totalIncome)}</div>
+                  <div className="text-xs text-[#86868b] mt-1.5">{selectedMonth === 'ALL' ? 'Tất cả thời gian' : `Trong tháng ${selectedMonth}`}</div>
+                </div>
               </div>
 
-              <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+              <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-slate-500">Tổng Thu nhập</span>
-                  <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[#86868b]">Tổng Chi tiêu</span>
+                  <div className="w-9 h-9 rounded-full bg-[#ff3b30]/12 text-[#d70015] flex items-center justify-center">
+                    <TrendingDown className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-xl font-bold text-blue-600">+{formatVND(stats.totalIncome)}</div>
-                <div className="text-xs text-slate-400 mt-1">{selectedMonth === 'ALL' ? 'Tất cả thời gian' : `Trong tháng ${selectedMonth}`}</div>
-              </div>
-
-              <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-slate-500">Tổng Chi tiêu</span>
-                  <div className="w-9 h-9 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
-                    <TrendingDown className="w-5 h-5" />
-                  </div>
+                <div>
+                  <div className="text-2xl font-bold tracking-tight text-[#d70015]">-{formatVND(stats.totalExpense)}</div>
+                  <div className="text-xs text-[#86868b] mt-1.5">{selectedMonth === 'ALL' ? 'Tất cả thời gian' : `Trong tháng ${selectedMonth}`}</div>
                 </div>
-                <div className="text-xl font-bold text-rose-600">-{formatVND(stats.totalExpense)}</div>
-                <div className="text-xs text-slate-400 mt-1">{selectedMonth === 'ALL' ? 'Tất cả thời gian' : `Trong tháng ${selectedMonth}`}</div>
               </div>
             </div>
+
+            <AnalyticsWidgets
+              analytics={analyticsOverview}
+              loading={analyticsLoading}
+              onOpenBudgetSettings={() => setShowProfileModal(true)}
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm min-w-0">
@@ -1279,17 +1353,38 @@ export default function App() {
                 {stats.expensePieData.length === 0 ? (
                   <div className="h-72 flex items-center justify-center text-sm text-slate-400">Chưa có dữ liệu chi tiêu để vẽ biểu đồ</div>
                 ) : (
-                  <div className="h-72">
+                  <>
+                  <div className="h-64 sm:h-72">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie data={stats.expensePieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius="70%" label>
+                        <Pie data={stats.expensePieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="46%" outerRadius="85%" paddingAngle={2}>
                           {stats.expensePieData.map((entry, idx) => <Cell key={idx} fill={entry.color} />)}
                         </Pie>
                         <Tooltip formatter={(val: any) => formatVND(Number(val))} />
-                        <Legend />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-100">
+                    {[...stats.expensePieData]
+                      .sort((a, b) => b.value - a.value)
+                      .map((entry, idx) => {
+                        const total = stats.expensePieData.reduce((s, item) => s + (item.value || 0), 0) || 1;
+                        const pct = ((entry.value / total) * 100).toFixed(1);
+                        return (
+                          <div key={idx} className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-50/80 text-xs">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+                              <span className="font-medium text-slate-700 truncate">{entry.name}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <span className="font-semibold text-slate-900">{formatVND(entry.value)}</span>
+                              <span className="text-[11px] text-slate-400">({pct}%)</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                  </>
                 )}
               </div>
             </div>
@@ -1337,69 +1432,87 @@ export default function App() {
         )}
 
         {activeTab === 'wallets' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+          <div key="tab-wallets" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 apple-tab-enter">
             {wallets.length === 0 ? (
               <div className="col-span-full bg-white p-8 sm:p-12 rounded-2xl border border-dashed border-slate-300 text-center">
                 <p className="text-slate-500 mb-4">Bạn chưa có ví nào. Hãy tạo ví đầu tiên!</p>
                 <button onClick={openCreateWallet} className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium cursor-pointer">+ Tạo Ví ngay</button>
               </div>
             ) : (
-              wallets.map((w) => (
-                <div key={w.id} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+              wallets.map((w) => {
+                const cardStyle =
+                  w.type === 'BANK'
+                    ? { background: 'radial-gradient(120% 100% at 100% 0%, rgba(56, 189, 248, 0.24) 0%, transparent 55%), linear-gradient(135deg, #1c1c1e 0%, #263147 55%, #111827 100%)' }
+                    : w.type === 'CASH'
+                    ? { background: 'radial-gradient(120% 100% at 100% 0%, rgba(52, 211, 153, 0.24) 0%, transparent 55%), linear-gradient(135deg, #0b3b2c 0%, #14634a 55%, #08291f 100%)' }
+                    : { background: 'radial-gradient(120% 100% at 100% 0%, rgba(244, 114, 182, 0.26) 0%, transparent 55%), linear-gradient(135deg, #2e1f6b 0%, #5856d6 55%, #7c3aed 100%)' };
+                return (
+                <div key={w.id} style={cardStyle} className="apple-wallet-card p-6 text-white flex flex-col justify-between min-h-[196px]">
                   <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600">
+                    <div className="flex items-center justify-between mb-6">
+                      <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-white/15 backdrop-blur-md text-white/90 tracking-wide">
                         {w.type === 'CASH' ? 'Tiền mặt' : w.type === 'BANK' ? 'Ngân hàng' : 'Ví điện tử'}
                       </span>
                       <div className="flex items-center gap-1">
-                        <button onClick={() => openTransferFromWallet(w.id)} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition cursor-pointer" title="Chuyển tiền từ ví này">
+                        <button onClick={() => openTransferFromWallet(w.id)} className="p-1.5 text-white/75 hover:text-white hover:bg-white/15 rounded-full transition cursor-pointer" title="Chuyển tiền từ ví này">
                           <ArrowLeftRight className="w-4 h-4" />
                         </button>
-                        <button onClick={() => openEditWallet(w)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer" title="Chỉnh sửa ví">
+                        <button onClick={() => openEditWallet(w)} className="p-1.5 text-white/75 hover:text-white hover:bg-white/15 rounded-full transition cursor-pointer" title="Chỉnh sửa ví">
                           <Pencil className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDeleteWallet(w.id, w.name)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer" title="Xóa ví">
+                        <button onClick={() => handleDeleteWallet(w.id, w.name)} className="p-1.5 text-white/75 hover:text-rose-200 hover:bg-white/15 rounded-full transition cursor-pointer" title="Xóa ví">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {w.type === 'CASH' && <Banknote className="w-5 h-5 text-emerald-600" />}
-                      {w.type === 'BANK' && <CreditCard className="w-5 h-5 text-blue-600" />}
-                      {w.type === 'EWALLET' && <Smartphone className="w-5 h-5 text-pink-600" />}
-                      <h3 className="text-lg font-bold text-slate-800 truncate">{w.name}</h3>
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center shrink-0">
+                        {w.type === 'CASH' && <Banknote className="w-4 h-4 text-emerald-200" />}
+                        {w.type === 'BANK' && <CreditCard className="w-4 h-4 text-sky-200" />}
+                        {w.type === 'EWALLET' && <Smartphone className="w-4 h-4 text-pink-200" />}
+                      </div>
+                      <h3 className="text-lg font-semibold text-white/95 truncate">{w.name}</h3>
                     </div>
-                    <div className="text-2xl font-bold text-emerald-600 mt-2">{formatVND(w.balance)}</div>
+                    <div className="text-2xl sm:text-[26px] font-bold tracking-tight text-white mt-3">
+                      {hideBalance ? '•••••••• ₫' : formatVND(w.balance)}
+                    </div>
                   </div>
-                  <div className="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-400 flex justify-between">
-                    <span>Trạng thái: {w.status === 'ACTIVE' ? 'Đang sử dụng' : 'Ngừng sử dụng'}</span>
-                    <span>ID: #{w.id}</span>
+                  <div className="mt-5 pt-3 border-t border-white/15 text-[11px] text-white/65 flex justify-between">
+                    <span>{w.status === 'ACTIVE' ? '● Đang sử dụng' : '○ Ngừng sử dụng'}</span>
+                    <span className="font-mono opacity-80">#{String(w.id).padStart(4, '0')}</span>
                   </div>
                 </div>
-              ))
+                );
+              })
             )}
           </div>
         )}
 
         {activeTab === 'transactions' && (
+          <div key="tab-transactions" className="space-y-4 apple-tab-enter">
+            <QuickParseBar
+              wallets={wallets}
+              categories={categories}
+              onCreated={async () => { await fetchAllData(); await fetchAnalytics(selectedMonth); }}
+            />
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div className="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 flex-1 min-w-0 w-full sm:w-auto">
                 <div className="relative w-full sm:flex-1 sm:max-w-xs">
                   <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                  <input type="text" placeholder="Tìm mô tả giao dịch..." value={filterKeyword} onChange={(e) => setFilterKeyword(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none" />
+                  <input type="text" placeholder="Tìm mô tả giao dịch..." value={filterKeyword} onChange={(e) => setFilterKeyword(e.target.value)} className="w-full pl-9 pr-4 py-2 bg-[#f2f2f7] hover:bg-[#e8e8ed]/80 focus:bg-white border border-transparent rounded-full text-sm transition focus:outline-none" />
                 </div>
-                <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="flex-1 sm:flex-none min-w-0 px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white cursor-pointer">
+                <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="flex-1 sm:flex-none min-w-0 px-3.5 py-2 border border-black/[0.08] rounded-full text-sm bg-white cursor-pointer">
                   <option value="">Tất cả loại</option>
                   <option value="INCOME">Thu nhập</option>
                   <option value="EXPENSE">Chi tiêu</option>
                   <option value="TRANSFER">Chuyển ví</option>
                 </select>
-                <select value={filterCategoryId} onChange={(e) => setFilterCategoryId(Number(e.target.value))} className="flex-1 sm:flex-none min-w-0 px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white cursor-pointer">
+                <select value={filterCategoryId} onChange={(e) => setFilterCategoryId(Number(e.target.value))} className="flex-1 sm:flex-none min-w-0 px-3.5 py-2 border border-black/[0.08] rounded-full text-sm bg-white cursor-pointer">
                   <option value={0}>Tất cả danh mục</option>
                   {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
-                <div className="flex items-center gap-1.5 border border-slate-200 rounded-xl px-3 py-2 bg-white flex-1 sm:flex-none min-w-0">
+                <div className="flex items-center gap-1.5 border border-black/[0.08] rounded-full px-3.5 py-2 bg-white flex-1 sm:flex-none min-w-0">
                   <ArrowUpDown className="w-4 h-4 text-slate-400 shrink-0" />
                   <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="text-sm bg-transparent focus:outline-none cursor-pointer font-medium text-slate-700 w-full min-w-0">
                     <option value="DATE_DESC">Thời gian: Mới nhất trước</option>
@@ -1411,12 +1524,12 @@ export default function App() {
                   </select>
                 </div>
               </div>
-              <button onClick={handleExportCsv} className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium flex items-center justify-center gap-2 cursor-pointer w-full sm:w-auto">
+              <div className="flex items-center gap-2 w-full sm:w-auto"><button onClick={() => setShowImportModal(true)} className="px-4 py-2 bg-[#1d1d1f] hover:bg-black text-white rounded-full text-sm font-medium flex items-center justify-center gap-2 cursor-pointer flex-1 sm:flex-none whitespace-nowrap"><Upload className="w-4 h-4" /> Import CSV</button><button onClick={handleExportCsv} className="px-4 py-2 bg-[#f2f2f7] hover:bg-[#e5e5ea] text-[#1d1d1f] rounded-full text-sm font-medium flex items-center justify-center gap-2 cursor-pointer flex-1 sm:flex-none whitespace-nowrap">
                 <Download className="w-4 h-4" /> Xuất CSV
-              </button>
+              </button></div>
             </div>
 
-            {/* Mobile: danh sách dạng thẻ */}
+
             <div className="md:hidden divide-y divide-slate-100">
               {filteredTransactions.length === 0 ? (
                 <div className="py-8 text-center text-sm text-slate-400">Chưa có giao dịch nào</div>
@@ -1429,7 +1542,7 @@ export default function App() {
                           {t.type === 'TRANSFER' ? (
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-indigo-50 text-indigo-600 font-semibold whitespace-nowrap">Chuyển ví nội bộ</span>
                           ) : (
-                            <span className="inline-flex items-center max-w-full px-2 py-0.5 rounded-full text-[11px] text-white font-medium truncate" style={{ backgroundColor: t.categoryColor || '#64748b' }}>{t.categoryName}</span>
+                            <span className="inline-flex items-center gap-1.5 max-w-full px-2.5 py-1 rounded-full text-[11px] bg-[#f2f2f7] text-[#1d1d1f] font-medium truncate"><span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: t.categoryColor || '#64748b' }} />{t.categoryName}</span>
                           )}
                         </div>
                         <div className={'shrink-0 text-sm font-bold ' + (t.type === 'INCOME' ? 'text-emerald-600' : t.type === 'EXPENSE' ? 'text-rose-600' : 'text-indigo-600')}>
@@ -1450,11 +1563,11 @@ export default function App() {
               )}
             </div>
 
-            {/* Tablet / Desktop: dạng bảng */}
+
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-100 select-none">
+                  <tr className="bg-white text-[#86868b] text-[11px] tracking-wider uppercase border-b border-black/[0.06] select-none">
                     <th onClick={() => setSortBy(sortBy === 'DATE_DESC' ? 'DATE_ASC' : 'DATE_DESC')} className="py-3.5 px-4 cursor-pointer hover:text-emerald-600 transition">
                       <span className="inline-flex items-center gap-1">Thời gian <ArrowUpDown className="w-3 h-3" /></span>
                     </th>
@@ -1474,13 +1587,13 @@ export default function App() {
                     <tr><td colSpan={6} className="py-8 text-center text-slate-400">Chưa có giao dịch nào</td></tr>
                   ) : (
                     filteredTransactions.map((t) => (
-                      <tr key={t.id} className="hover:bg-slate-50">
+                      <tr key={t.id} className="hover:bg-[#f5f5f7]/70 transition-colors">
                         <td className="py-3.5 px-4 text-slate-500">{new Date(t.transactionDate).toLocaleString('vi-VN')}</td>
                         <td className="py-3.5 px-4 font-medium">
                           {t.type === 'TRANSFER' ? (
                             <span className="px-2.5 py-1 rounded-full text-xs bg-indigo-50 text-indigo-600 font-semibold">Chuyển ví nội bộ</span>
                           ) : (
-                            <span className="px-2.5 py-1 rounded-full text-xs text-white" style={{ backgroundColor: t.categoryColor || '#64748b' }}>{t.categoryName}</span>
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs bg-[#f2f2f7] text-[#1d1d1f] font-medium"><span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: t.categoryColor || '#64748b' }} />{t.categoryName}</span>
                           )}
                         </td>
                         <td className="py-3.5 px-4 text-slate-700">{t.walletName}{t.targetWalletName ? ` → ${t.targetWalletName}` : ''}</td>
@@ -1501,10 +1614,29 @@ export default function App() {
               </table>
             </div>
           </div>
+          </div>
         )}
 
         {activeTab === 'categories' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+          <div key="tab-categories" className="space-y-5 apple-tab-enter">
+            <div className="inline-flex p-1 rounded-full bg-black/[0.06]">
+              <button
+                type="button"
+                onClick={() => setCatSubTab('list')}
+                className={'px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer ' + (catSubTab === 'list' ? 'bg-white text-[#1d1d1f] shadow-xs' : 'text-[#6e6e73] hover:text-[#1d1d1f]')}>
+                Danh mục & Hạn mức ({categories.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setCatSubTab('rules')}
+                className={'px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer ' + (catSubTab === 'rules' ? 'bg-white text-[#1d1d1f] shadow-xs' : 'text-[#6e6e73] hover:text-[#1d1d1f]')}>
+                Quy tắc từ khóa tự động
+              </button>
+            </div>
+            {catSubTab === 'rules' ? (
+              <KeywordRulesPanel categories={categories} />
+            ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {categories.map((c) => {
               const limit = c.budgetLimit || 0;
               const spent = limit > 0
@@ -1561,11 +1693,13 @@ export default function App() {
                 </div>
               );
             })}
+            </div>
+            )}
           </div>
         )}
 
         {activeTab === 'goals' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+          <div key="tab-goals" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 apple-tab-enter">
             {goals.length === 0 ? (
               <div className="col-span-full bg-white p-8 sm:p-12 rounded-2xl border border-dashed border-slate-300 text-center">
                 <Target className="w-10 h-10 text-emerald-600 mx-auto mb-3" />
@@ -1617,7 +1751,7 @@ export default function App() {
         )}
 
         {activeTab === 'recurring' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+          <div key="tab-recurring" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 apple-tab-enter">
             {recurrings.length === 0 ? (
               <div className="col-span-full bg-white p-8 sm:p-12 rounded-2xl border border-dashed border-slate-300 text-center">
                 <Repeat className="w-10 h-10 text-emerald-600 mx-auto mb-3" />
@@ -1668,7 +1802,7 @@ export default function App() {
         )}
 
         {activeTab === 'ai' && (
-          <div className="space-y-6">
+          <div key="tab-ai" className="space-y-6 apple-tab-enter">
             {aiLoading && !aiReport ? (
               <div className="bg-white p-12 rounded-2xl border border-slate-100 text-center text-slate-500">
                 Đang phân tích dữ liệu tài chính của bạn...
@@ -1676,7 +1810,7 @@ export default function App() {
             ) : aiReport ? (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white p-6 rounded-2xl shadow-sm">
+                  <div className="bg-gradient-to-br from-[#0071e3] via-[#5856d6] to-[#af52de] text-white p-6 rounded-[22px] shadow-md shadow-[#5856d6]/20">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs uppercase tracking-wider text-indigo-100 font-semibold">Điểm Sức khỏe Tài chính</span>
                       <Sparkles className="w-5 h-5 text-amber-300" />
@@ -1770,7 +1904,12 @@ export default function App() {
                           <div>
                             <h3 className="font-bold text-xs text-slate-800">Trợ lý Tài chính HTR</h3>
                             <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Trực tuyến
+                              <span className={'w-1.5 h-1.5 rounded-full ' + (aiEngineInfo.provider === 'fallback' ? 'bg-amber-500' : 'bg-emerald-500')}></span>
+                              {aiEngineInfo.provider === 'groq'
+                                ? `Groq AI (${aiEngineInfo.model || 'Llama 3.3'})`
+                                : aiEngineInfo.provider === 'fallback'
+                                ? 'Phân tích nội bộ (Kiểm tra GROQ_API_KEY)'
+                                : 'Groq AI • Trực tuyến'}
                             </span>
                           </div>
                         </div>
@@ -1894,6 +2033,7 @@ export default function App() {
             )}
           </div>
         )}
+        {activeTab === 'admin' && <AdminPanel />}
       </main>
 
       {/* Modal Thêm / Sửa Ví */}
@@ -2179,12 +2319,26 @@ export default function App() {
         onClose={() => setShowChangePassModal(false)}
       />
 
-      {/* FLOATING AI CHAT WIDGET */}
-      {activeTab !== 'ai' && !mobileMenuOpen && !showWalletModal && !showTxModal && !showCatModal && !showGoalModal && !showRecModal && !contribGoal && !showChangePassModal && (
+      <CsvImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        wallets={wallets}
+        categories={categories}
+        onImported={async () => { await fetchAllData(); await fetchAnalytics(selectedMonth); }}
+      />
+
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        user={user}
+        onUpdated={(nextUser) => { setUser(nextUser); fetchAnalytics(selectedMonth); }}
+      />
+
+      {activeTab !== 'ai' && !mobileMenuOpen && !showWalletModal && !showTxModal && !showCatModal && !showGoalModal && !showRecModal && !contribGoal && !showChangePassModal && !showImportModal && !showProfileModal && (
       <div style={{ zIndex: 9999 }} className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 flex flex-col items-end">
         {miniChatOpen && (
-          <div className="mb-3 w-[calc(100vw-32px)] sm:w-[370px] h-[min(440px,calc(100dvh-110px))] bg-white rounded-2xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden">
-            <div className="px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex items-center justify-between shrink-0">
+          <div className="mb-3 w-[calc(100vw-32px)] sm:w-[370px] h-[min(440px,calc(100dvh-110px))] apple-glass-strong apple-chat-enter rounded-[24px] border border-black/[0.08] shadow-2xl flex flex-col overflow-hidden">
+            <div className="px-4 py-3 bg-gradient-to-r from-[#0071e3] via-[#5856d6] to-[#af52de] text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
                   <Bot className="w-4 h-4 text-white" />
@@ -2192,7 +2346,12 @@ export default function App() {
                 <div>
                   <div className="font-bold text-xs leading-tight">Trợ lý Tài chính HTR</div>
                   <div className="text-[10px] text-indigo-100 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Trực tuyến
+                    <span className={'w-1.5 h-1.5 rounded-full ' + (aiEngineInfo.provider === 'fallback' ? 'bg-amber-300' : 'bg-emerald-400')}></span>
+                    {aiEngineInfo.provider === 'groq'
+                      ? `Groq AI • ${aiEngineInfo.model || 'Llama 3.3'}`
+                      : aiEngineInfo.provider === 'fallback'
+                      ? 'Nội bộ (Kiểm tra GROQ_API_KEY)'
+                      : 'Groq AI • Trực tuyến'}
                   </div>
                 </div>
               </div>
@@ -2317,7 +2476,7 @@ export default function App() {
         <button
           type="button"
           onClick={() => setMiniChatOpen((prev) => !prev)}
-          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-xl flex items-center justify-center cursor-pointer transition-transform active:scale-95 relative"
+          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#0071e3] via-[#5856d6] to-[#af52de] hover:brightness-110 text-white shadow-xl shadow-[#5856d6]/30 flex items-center justify-center cursor-pointer transition-all hover:scale-105 active:scale-95 relative"
           title="Mở Trợ lý Tài chính AI"
         >
           <Bot className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -2325,7 +2484,7 @@ export default function App() {
         </button>
       </div>
       )}
-      {/* END FLOATING AI CHAT WIDGET */}
+
     </div>
   );
 }

@@ -3,6 +3,7 @@ export interface UserProfile {
   fullName: string;
   email: string;
   role: string;
+  monthlyBudgetLimit?: number;
 }
 
 export interface Wallet {

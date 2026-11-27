@@ -18,18 +18,18 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, columnDefinition = "NVARCHAR(255)")
+    @Column(nullable = false, length = 255)
     private String name;
 
-    @Column(nullable = false, columnDefinition = "NVARCHAR(50)")
+    @Column(nullable = false, length = 50)
     private String type; // INCOME / EXPENSE
 
     @Builder.Default
-    @Column(columnDefinition = "NVARCHAR(100)")
+    @Column(length = 100)
     private String icon = "tag";
 
     @Builder.Default
-    @Column(columnDefinition = "NVARCHAR(50)")
+    @Column(length = 50)
     private String color = "#6366f1";
 
     @Column(name = "budget_limit")

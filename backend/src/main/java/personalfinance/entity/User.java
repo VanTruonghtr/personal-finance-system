@@ -37,6 +37,10 @@ public class User implements UserDetails {
     @Builder.Default
     private String role = "USER";
 
+    @Column(name = "monthly_budget_limit")
+    @Builder.Default
+    private Double monthlyBudgetLimit = 0.0;
+
     @Column(name = "created_at")
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();

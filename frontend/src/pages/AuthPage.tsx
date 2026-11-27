@@ -26,7 +26,9 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   const [loading, setLoading] = useState(false);
 
   const googleBtnRef = useRef<HTMLDivElement | null>(null);
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+  const googleClientId =
+    import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+    '1085737011575-sgf7cottsq07fn9pr15q4oehp6bfusma.apps.googleusercontent.com';
 
   const finishAuth = (data: any, fallbackEmail: string, fallbackName?: string) => {
     const token = data.token || data.accessToken;
@@ -202,10 +204,12 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-slate-50 to-teal-50 p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-8">
+    <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7] p-4 relative overflow-hidden">
+      <div className="pointer-events-none absolute -top-32 -left-24 w-96 h-96 rounded-full bg-[#0071e3]/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -right-24 w-96 h-96 rounded-full bg-[#5856d6]/10 blur-3xl" />
+      <div className="relative w-full max-w-md apple-glass-strong apple-tab-enter rounded-[28px] shadow-[0_12px_40px_-10px_rgba(0,0,0,0.12)] border border-white/80 p-6 sm:p-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-200 shrink-0">
+          <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-[#0071e3] to-[#2997ff] text-white flex items-center justify-center shadow-md shadow-[#0071e3]/25 shrink-0">
             <Wallet className="w-6 h-6" />
           </div>
           <div>
@@ -367,7 +371,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl text-sm flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-60"
+            className="w-full py-2.5 px-4 bg-[#0071e3] hover:bg-[#0077ed] text-white font-medium rounded-full text-sm flex items-center justify-center gap-2 shadow-sm shadow-[#0071e3]/25 transition cursor-pointer disabled:opacity-60"
           >
             {loading
               ? 'Đang xử lý...'
@@ -413,7 +417,7 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
             <button
               type="button"
               onClick={() => switchMode(mode === 'login' ? 'register' : 'login')}
-              className="text-emerald-600 font-semibold hover:underline cursor-pointer"
+              className="text-[#0071e3] font-semibold hover:underline cursor-pointer"
             >
               {mode === 'login' ? 'Đăng ký miễn phí' : 'Đăng nhập'}
             </button>
